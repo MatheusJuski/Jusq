@@ -21,6 +21,21 @@ body {
   min-height: 100vh;
 }
 
+/* Em tela cheia o painel precisa ocupar tudo. Sem isto o corpo mantém o 16:9
+   fixo e sobra uma faixa preta em volta, como se nada tivesse acontecido.
+   Resolvido em CSS e não em JS: o browser já sabe quem está em fullscreen. */
+:fullscreen {
+  display: flex;
+  flex-direction: column;
+  background: var(--color-lab-bg);
+}
+
+:fullscreen [data-panel-body] {
+  aspect-ratio: auto;
+  flex: 1;
+  min-height: 0;
+}
+
 /* Grade sutil de fundo - referência visual de "instrumento", não de SaaS. */
 body::before {
   content: '';

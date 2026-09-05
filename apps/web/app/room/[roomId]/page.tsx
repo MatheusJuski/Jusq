@@ -11,6 +11,11 @@ import {
   type PeerDiagnostics,
 } from '@/lib/room-client';
 import { DEFAULT_QUALITY_ID, QUALITY_PRESETS } from '@/lib/quality';
+import {
+  RemoteStreamPanel,
+  StreamVideo,
+  VideoPanel,
+} from '@/components/stream-panel';
 
 const STATUS_LABEL: Record<ConnectionStatus, string> = {
   idle: 'AGUARDANDO',
@@ -227,42 +232,16 @@ export default function RoomPage() {
             }
           />
         ) : (
-          remoteEntries.map(([peerId, stream]) => {
-            const hasAudio = stream.getAudioTracks().length > 0;
-            const on = audioOn.has(peerId);
-
-            return (
-              <VideoPanel
-                key={peerId}
-                label={peerId.slice(0, 8)}
-                active
-                action={
-                  hasAudio ? (
-                    <button
-                      type="button"
-                      onClick={() => toggleAudio(peerId)}
-                      className={`cursor-pointer border px-2 py-0.5 tracking-widest transition-colors ${
-                        on
-                          ? 'border-lab-accent text-lab-accent'
-                          : 'border-lab-border text-lab-dim hover:border-lab-dim'
-                      }`}
-                    >
-                      {on ? '♪ SOM' : '✕ MUDO'}
-                    </button>
-                  ) : (
-                    <span className="text-lab-dim">SEM ÁUDIO</span>
-                  )
-                }
-              >
-                <StreamVideo
-                  key={stream.id}
-                  stream={stream}
-                  muted={!on}
-                  onPlayError={reportError}
-                />
-              </VideoPanel>
-            );
-          })
+          remoteEntries.map(([peerId, stream]) => (
+            <RemoteStreamPanel
+              key={peerId}
+              label={peerId.slice(0, 8)}
+              stream={stream}
+              audioOn={audioOn.has(peerId)}
+              onToggleAudio={() => toggleAudio(peerId)}
+              onPlayError={reportError}
+            />
+          ))
         )}
       </div>
 
@@ -286,94 +265,6 @@ export default function RoomPage() {
         justifica o TURN na Phase 1.
       </p>
     </div>
-  );
-}
-
-function VideoPanel({
-  label,
-  active,
-  emptyHint,
-  action,
-  children,
-}: {
-  label: string;
-  active: boolean;
-  emptyHint?: string;
-  /** Controle opcional no cabeçalho, ex. o botão de som. */
-  action?: React.ReactNode;
-  children?: React.ReactNode;
-}) {
-  return (
-    <div className="border border-lab-border bg-lab-panel">
-      <div className="flex items-center justify-between border-b border-lab-border px-3 py-1.5 text-[11px] tracking-widest">
-        <span>{label}</span>
-        <div className="flex items-center gap-3">
-          {action}
-          <span className={active ? 'text-lab-accent' : 'text-lab-dim'}>
-            {active ? '● LIVE' : '○ OFF'}
-          </span>
-        </div>
-      </div>
-
-      {/* Os filhos são sempre renderizados: desmontá-los faria o <video> deixar de existir justamente quando o stream chega. A dica vazia fica por cima, não no lugar. */}
-      <div className="relative flex aspect-video items-center justify-center bg-black">
-        {children}
-        {!active && (
-          <span className="absolute px-4 text-center text-xs text-lab-dim">
-            {emptyHint}
-          </span>
-        )}
-      </div>
-    </div>
-  );
-}
-
-function StreamVideo({
-  stream,
-  muted,
-  onPlayError,
-}: {
-  stream: MediaStream;
-  muted: boolean;
-  onPlayError?: (message: string) => void;
-}) {
-  const ref = useRef<HTMLVideoElement>(null);
-
-// Se não bota isso o player não renderiza
-  useEffect(() => {
-    if (ref.current) ref.current.muted = muted;
-  }, [muted]);
-
-  useEffect(() => {
-    const video = ref.current;
-    if (!video) return;
-
-    video.srcObject = stream;
-
-    void video.play().catch((error: unknown) => {
-      if (!(error instanceof DOMException)) return;
-
-      // O atributo autoPlay do elemento também dispara a reprodução; quando ela chega primeiro, este play() é abortado. É esperado, não é falha.
-      if (error.name === 'AbortError') return;
-
-      onPlayError?.(`reprodução bloqueada (${error.name}) - clique no vídeo`);
-    });
-
-    return () => {
-      video.srcObject = null;
-    };
-  }, [stream, onPlayError]);
-
-  return (
-    <video
-      ref={ref}
-      autoPlay
-      playsInline
-      muted={muted}
-      // Clicar destrava o caso de autoplay bloqueado por gesto do usuário.
-      onClick={() => void ref.current?.play().catch(() => undefined)}
-      className="h-full w-full object-contain"
-    />
   );
 }
 
