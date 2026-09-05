@@ -3,11 +3,6 @@ import { Poppins } from 'next/font/google';
 
 import './globals.css';
 
-/**
- * Poppins via `next/font`: as fontes são baixadas no build e servidas do
- * próprio domínio. Sem requisição ao Google em runtime e sem o salto de layout
- * que um `<link>` para fonte externa provoca.
- */
 const poppins = Poppins({
   subsets: ['latin'],
   weight: ['400', '500', '600', '700'],
@@ -40,16 +35,12 @@ export default function RootLayout({
                 Jusq&apos;s
               </span>
             </a>
-
-            <span className="rounded-full border border-line px-3 py-1 text-[11px] font-medium text-denim">
-              Screen Lab · v0
-            </span>
           </header>
 
           <main className="flex-1">{children}</main>
 
           <footer className="px-6 py-6 text-[12px] text-denim/70 sm:px-10">
-            Experimento 01 — WebRTC e sistemas realtime
+            WebRTC e sistemas realtime
           </footer>
         </div>
       </body>

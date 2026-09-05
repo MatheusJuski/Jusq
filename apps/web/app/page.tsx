@@ -30,9 +30,8 @@ export default function HomePage() {
     <div className="mx-auto w-full max-w-4xl px-6 pt-10 pb-20 sm:px-10">
       <section className="max-w-2xl">
         <h1 className="text-[2.75rem] leading-[1.05] font-semibold tracking-tight sm:text-6xl">
-          Compartilhe sua tela
+          Compartilhe sua tela aqui.
           <br />
-          <span className="text-lilac-soft">sem intermediários.</span>
         </h1>
         <p className="mt-5 max-w-lg text-[15px] leading-relaxed text-denim">
           O vídeo vai direto de um navegador ao outro por WebRTC. O servidor só
@@ -42,9 +41,6 @@ export default function HomePage() {
 
       <section className="mt-12 rounded-card border border-line bg-surface/70 p-6 sm:p-8">
         <div className="flex flex-wrap items-center gap-3">
-          <span className="rounded-full bg-lilac/15 px-3 py-1 text-[11px] font-medium text-lilac-soft">
-            Experimento 01
-          </span>
           <span className="text-[13px] text-denim/80">
             WebRTC · WebSocket · mesh P2P
           </span>
@@ -92,7 +88,7 @@ export default function HomePage() {
 
       <section className="mt-14">
         <h2 className="text-[11px] font-medium tracking-[0.18em] text-denim/60 uppercase">
-          Próximos experimentos
+          Próximos desenvolvimentos
         </h2>
 
         <ul className="mt-5 grid gap-px overflow-hidden rounded-card border border-line bg-line sm:grid-cols-2">
