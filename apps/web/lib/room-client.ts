@@ -9,6 +9,12 @@ import type {
 
 import { getIceServers, getSignalingUrl } from './ice';
 import {
+  AUDIO_SOURCE_NONE,
+  DEFAULT_AUDIO_SOURCE,
+  DEVICE_AUDIO_CONSTRAINTS,
+  deviceIdOf,
+} from './audio-source';
+import {
   AUDIO_BITRATE,
   AUDIO_CONSTRAINTS,
   DEFAULT_QUALITY_ID,
@@ -32,6 +38,40 @@ export interface RoomClientHandlers {
   onRemoteStreamEnded(peerId: PeerId): void;
   onLocalStream(stream: MediaStream | null): void;
   onError(message: string): void;
+}
+
+/**
+ * `systemAudio` é suportado nos navegadores Chromium mas ainda não existe na
+ * lib de tipos do DOM. Declarado aqui em vez de um `as any` no ponto de uso:
+ * assim o campo continua sendo conferido pelo compilador.
+ */
+interface DisplayMediaOptions extends DisplayMediaStreamOptions {
+  systemAudio?: 'include' | 'exclude';
+}
+
+/**
+ * Qual superfície o usuário escolheu no seletor do browser.
+ *
+ * `displaySurface` existe no padrão mas ainda não está na lib de tipos. É a
+ * única forma de saber se veio uma tela, uma janela ou uma aba — e a resposta
+ * muda completamente o diagnóstico quando o áudio falha.
+ */
+function describeSurface(stream: MediaStream): string {
+  const [track] = stream.getVideoTracks();
+  if (!track) return 'desconhecida';
+
+  const settings = track.getSettings() as { displaySurface?: string };
+
+  switch (settings.displaySurface) {
+    case 'monitor':
+      return 'tela inteira';
+    case 'window':
+      return 'janela';
+    case 'browser':
+      return 'aba';
+    default:
+      return settings.displaySurface ?? 'desconhecida';
+  }
 }
 
 /**
@@ -97,6 +137,7 @@ export class RoomClient {
   readonly #peers = new Map<PeerId, PeerState>();
 
   #quality: QualityPreset = findPreset(DEFAULT_QUALITY_ID);
+  #audioSource: string = DEFAULT_AUDIO_SOURCE;
   #socket: WebSocket | null = null;
   #selfId: PeerId | null = null;
   #localStream: MediaStream | null = null;
@@ -172,36 +213,8 @@ export class RoomClient {
   async startSharing(): Promise<void> {
     if (this.#localStream) return;
 
-    let stream: MediaStream;
-    try {
-      // Pedido no formato mais simples possível, de propósito.
-      //
-      // `getDisplayMedia` rejeita o pedido INTEIRO ao encontrar uma restrição
-      // que não suporta, e o conjunto suportado varia entre browsers — pedir
-      // resolução, fps e processamento de áudio aqui é apostar que todos
-      // aceitam tudo. O perfil é aplicado logo abaixo com `applyConstraints`,
-      // onde cada ajuste falha isolado sem derrubar a captura.
-      //
-      // Pedir áudio não garante recebê-lo: o browser só entrega se o usuário
-      // marcar a opção no seletor, e ela não existe ao compartilhar uma janela
-      // isolada — apenas aba ou tela inteira.
-      stream = await navigator.mediaDevices.getDisplayMedia({
-        video: true,
-        audio: true,
-      });
-    } catch (error) {
-      // Fechar o seletor de tela do browser cai aqui. Não é erro.
-      if (error instanceof DOMException && error.name === 'NotAllowedError') return;
-
-      // O nome da exceção é a única pista útil sobre o que a plataforma
-      // recusou. Escondê-lo transforma um diagnóstico em adivinhação.
-      const detail =
-        error instanceof DOMException
-          ? `${error.name}: ${error.message}`
-          : String(error);
-      this.#handlers.onError(`não foi possível capturar a tela — ${detail}`);
-      return;
-    }
+    const stream = await this.#capture();
+    if (!stream) return;
 
     await this.#applyCaptureProfile(stream);
 
@@ -247,6 +260,16 @@ export class RoomClient {
   }
 
   /**
+   * Define de onde vem o áudio na próxima captura.
+   *
+   * Não afeta uma transmissão em andamento: trocar a fonte exigiria recapturar
+   * e renegociar, e o usuário perderia a seleção de tela sem pedir.
+   */
+  setAudioSource(value: string): void {
+    this.#audioSource = value;
+  }
+
+  /**
    * Troca o perfil de qualidade.
    *
    * Se já houver transmissão, aplica ao vivo — `applyConstraints` reconfigura a
@@ -263,6 +286,148 @@ export class RoomClient {
 
     for (const state of this.#peers.values()) {
       await this.#applySenderLimits(state.pc);
+    }
+  }
+
+  /**
+   * Captura a tela, com áudio quando a fonte permitir.
+   *
+   * `getDisplayMedia` trata `audio: true` como **obrigatório**: se a fonte de
+   * áudio não iniciar, ele rejeita o pedido inteiro e o vídeo morre junto. Isso
+   * acontece, por exemplo, ao compartilhar uma janela isolada no Windows, onde
+   * não existe captura de áudio — e o sintoma é um `NotReadableError` que não
+   * deixa claro que o culpado foi só o som.
+   *
+   * Como não há como marcar o áudio como opcional no pedido, a segunda
+   * tentativa faz esse papel: troca "nada funciona" por "funciona sem som".
+   *
+   * As restrições de resolução e processamento ficam de fora daqui de
+   * propósito — o conjunto suportado varia entre browsers e uma restrição
+   * recusada derrubaria o pedido pelo mesmo motivo. Elas entram depois, via
+   * `applyConstraints`, onde cada ajuste falha isolado.
+   *
+   * Retorna `null` quando o usuário fecha o seletor ou quando nem o vídeo
+   * sozinho é possível.
+   */
+  async #capture(): Promise<MediaStream | null> {
+    const deviceId = deviceIdOf(this.#audioSource);
+
+    // Áudio de um dispositivo de entrada: única forma de levar o som de um
+    // jogo que roda fora do navegador, já que janela isolada nunca entrega
+    // áudio pela captura de tela.
+    if (deviceId) return this.#captureWithDeviceAudio(deviceId);
+
+    if (this.#audioSource === AUDIO_SOURCE_NONE) {
+      return this.#captureVideoOnly();
+    }
+
+    return this.#captureWithDisplayAudio();
+  }
+
+  /** Fecha o seletor de tela — intenção do usuário, não falha. */
+  static #cancelled(error: unknown): boolean {
+    return error instanceof DOMException && error.name === 'NotAllowedError';
+  }
+
+  static #describe(error: unknown): string {
+    return error instanceof DOMException
+      ? `${error.name}: ${error.message}`
+      : String(error);
+  }
+
+  async #captureVideoOnly(): Promise<MediaStream | null> {
+    try {
+      return await navigator.mediaDevices.getDisplayMedia({ video: true });
+    } catch (error) {
+      if (RoomClient.#cancelled(error)) return null;
+      this.#handlers.onError(
+        `não foi possível capturar a tela — ${RoomClient.#describe(error)}`,
+      );
+      return null;
+    }
+  }
+
+  /**
+   * Vídeo da captura de tela + áudio de um dispositivo de entrada.
+   *
+   * As duas capturas são independentes: o vídeo pode vir de uma janela, que
+   * nunca teria áudio próprio, e o som vem do dispositivo escolhido. Falhar no
+   * áudio aqui degrada para vídeo — nunca cancela a transmissão.
+   */
+  async #captureWithDeviceAudio(deviceId: string): Promise<MediaStream | null> {
+    const video = await this.#captureVideoOnly();
+    if (!video) return null;
+
+    try {
+      const audio = await navigator.mediaDevices.getUserMedia({
+        audio: { deviceId: { exact: deviceId }, ...DEVICE_AUDIO_CONSTRAINTS },
+      });
+
+      // Um stream só, para que `stopSharing` encerre tudo de uma vez.
+      return new MediaStream([
+        ...video.getVideoTracks(),
+        ...audio.getAudioTracks(),
+      ]);
+    } catch (error) {
+      this.#handlers.onError(
+        'o dispositivo de áudio escolhido não abriu — transmitindo só o ' +
+          `vídeo (${RoomClient.#describe(error)}).`,
+      );
+      return video;
+    }
+  }
+
+  /**
+   * Áudio junto da captura de tela.
+   *
+   * `getDisplayMedia` trata `audio: true` como **obrigatório**: se a fonte de
+   * áudio não iniciar, ele rejeita o pedido inteiro e o vídeo morre junto.
+   * Como não há como marcá-lo opcional, a segunda tentativa faz esse papel.
+   */
+  async #captureWithDisplayAudio(): Promise<MediaStream | null> {
+    // Sem `systemAudio` o browser pode não oferecer a caixa de áudio ao
+    // compartilhar a tela inteira. O padrão hoje é 'include', mas a própria
+    // documentação do Chrome pede que seja declarado — depender de um padrão
+    // que avisam que vai mudar é só adiar a quebra.
+    const options: DisplayMediaOptions = {
+      video: true,
+      audio: true,
+      systemAudio: 'include',
+    };
+
+    try {
+      return await navigator.mediaDevices.getDisplayMedia(options);
+    } catch (error) {
+      if (RoomClient.#cancelled(error)) return null;
+
+      try {
+        const stream = await navigator.mediaDevices.getDisplayMedia({
+          video: true,
+        });
+
+        // O nome da exceção vem primeiro: sem ele a mensagem vira palpite, e
+        // quem já tentou o caminho sugerido fica sem saída.
+        // A superfície escolhida é a informação que falta para saber se o
+        // problema é a fonte (janela nunca tem áudio) ou o sistema.
+        this.#handlers.onError(
+          `o áudio falhou (${RoomClient.#describe(error)}) — fonte escolhida: ` +
+            `${describeSurface(stream)}. Transmitindo só o vídeo. Se a fonte ` +
+            'foi "janela", isso é esperado: janela isolada nunca entrega ' +
+            'áudio. Use tela inteira, ou selecione a "Mixagem Estéreo" como ' +
+            'fonte de áudio aqui.',
+        );
+        return stream;
+      } catch (retryError) {
+        if (RoomClient.#cancelled(retryError)) return null;
+
+        // Os dois nomes juntos: o primeiro diz por que o áudio falhou, o
+        // segundo por que nem o vídeo sozinho passou.
+        this.#handlers.onError(
+          `não foi possível capturar a tela — ${RoomClient.#describe(retryError)} ` +
+            `(com áudio: ${RoomClient.#describe(error)})`,
+        );
+        return null;
+      }
     }
   }
 

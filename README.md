@@ -117,9 +117,17 @@ e [`DOCs/DEPLOY.md`](DOCs/DEPLOY.md) para hospedagem e custos.
   `muted`; sem isso a reprodução é barrada com `NotAllowedError` e a tela fica
   preta. O painel remoto traz um botão **SOM** — o clique é o gesto que o
   browser exige para liberar o áudio.
-* **Áudio depende do que o usuário marcar.** `getDisplayMedia` só entrega
-  áudio se a opção for marcada no seletor do browser, e ela não existe ao
-  compartilhar uma **janela isolada** — apenas aba ou tela inteira. O painel
-  indica `SEM ÁUDIO` quando o stream vem só com vídeo.
+* **Áudio só existe em algumas fontes.** Limitação da plataforma, não do
+  projeto:
+
+  | Fonte | Áudio |
+  | ----- | ----- |
+  | Aba do navegador | sim — marque "compartilhar áudio da guia" |
+  | Tela inteira | só no Windows, marcando "áudio do sistema", e nem sempre |
+  | Janela isolada | **nunca** — nenhum browser suporta |
+
+  Quando a captura de áudio falha, a transmissão continua **só com vídeo** em
+  vez de não acontecer: `getDisplayMedia` trata `audio: true` como obrigatório
+  e derrubaria o vídeo junto.
 
 

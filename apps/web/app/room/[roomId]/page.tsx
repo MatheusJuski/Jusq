@@ -12,10 +12,20 @@ import {
 } from '@/lib/room-client';
 import { DEFAULT_QUALITY_ID, QUALITY_PRESETS } from '@/lib/quality';
 import {
+  AUDIO_SOURCE_DISPLAY,
+  AUDIO_SOURCE_NONE,
+  DEFAULT_AUDIO_SOURCE,
+  deviceValue,
+  listAudioInputs,
+} from '@/lib/audio-source';
+import {
   RemoteStreamPanel,
   StreamVideo,
   VideoPanel,
 } from '@/components/stream-panel';
+
+/** Valor sentinela do `<select>`: aciona a busca em vez de virar seleção. */
+const DETECT_DEVICES = '__detect__';
 
 const STATUS_LABEL: Record<ConnectionStatus, string> = {
   idle: 'aguardando',
@@ -61,6 +71,8 @@ export default function RoomPage() {
   // mudo. Ligar exige um clique - que é justamente o gesto que o browser pede.
   const [audioOn, setAudioOn] = useState<Set<PeerId>>(new Set());
   const [quality, setQuality] = useState(DEFAULT_QUALITY_ID);
+  const [audioSource, setAudioSource] = useState(DEFAULT_AUDIO_SOURCE);
+  const [audioDevices, setAudioDevices] = useState<MediaDeviceInfo[]>([]);
 
   const toggleAudio = useCallback((peerId: PeerId) => {
     setAudioOn((prev) => {
@@ -77,6 +89,23 @@ export default function RoomPage() {
       prev[prev.length - 1] === message ? prev : [...prev.slice(-4), message],
     );
   }, []);
+
+  /**
+   * Carrega os dispositivos de entrada.
+   *
+   * Sob demanda, e não na montagem: listar exige permissão de áudio, e pedir
+   * o microfone assim que a página abre seria assustador sem motivo.
+   */
+  const loadAudioDevices = useCallback(async () => {
+    try {
+      setAudioDevices(await listAudioInputs());
+    } catch {
+      reportError(
+        'não foi possível listar os dispositivos de áudio — a permissão de ' +
+          'microfone foi negada.',
+      );
+    }
+  }, [reportError]);
 
   useEffect(() => {
     if (!roomId) return;
@@ -165,6 +194,45 @@ export default function RoomPage() {
         </div>
 
         <div className="flex flex-wrap items-center gap-2">
+          <select
+            value={audioSource}
+            aria-label="Fonte de áudio"
+            title={
+              'da tela: o áudio vem junto da captura — funciona em aba e, ' +
+              'marcando a caixa, em tela inteira; nunca em janela isolada. ' +
+              'dispositivo: o áudio vem de uma entrada do sistema, como a ' +
+              'Mixagem Estéreo — é assim que se transmite o som de um jogo ' +
+              'compartilhando só a janela dele.'
+            }
+            onChange={(event) => {
+              const value = event.target.value;
+
+              // Item de ação, não de valor: dispara a permissão e repovoa a
+              // lista sem alterar a seleção atual.
+              if (value === DETECT_DEVICES) {
+                void loadAudioDevices();
+                return;
+              }
+
+              setAudioSource(value);
+              clientRef.current?.setAudioSource(value);
+            }}
+            className="cursor-pointer rounded-full border border-line bg-ink px-4 py-2.5 text-[13px] outline-none transition-colors hover:border-denim/60 focus:border-lilac/60"
+          >
+            <option value={AUDIO_SOURCE_DISPLAY}>áudio: da tela</option>
+            <option value={AUDIO_SOURCE_NONE}>áudio: nenhum</option>
+            {audioDevices.map((device) => (
+              <option key={device.deviceId} value={deviceValue(device.deviceId)}>
+                áudio: {device.label || 'dispositivo sem nome'}
+              </option>
+            ))}
+            <option value={DETECT_DEVICES}>
+              {audioDevices.length > 0
+                ? 'atualizar dispositivos…'
+                : 'procurar dispositivos…'}
+            </option>
+          </select>
+
           <select
             value={quality}
             aria-label="Qualidade da transmissão"
