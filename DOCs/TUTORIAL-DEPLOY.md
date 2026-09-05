@@ -219,16 +219,25 @@ normal no plano free.
 
 Antes de clicar em Deploy, abra **Environment Variables**:
 
-| Name | Value |
-| ---- | ----- |
-| `NEXT_PUBLIC_SIGNALING_URL` | `wss://jusqs-server.onrender.com/ws` |
+| Campo | Valor |
+| ----- | ----- |
+| **Type** | **Config** *(não Secret)* |
+| Key | `NEXT_PUBLIC_SIGNALING_URL` |
+| Value | `wss://<sua-url-do-render>/ws` |
+| Environments | Production, Preview, Development |
 
-Três detalhes que quebram silenciosamente:
+Quatro detalhes que quebram silenciosamente:
 
-* **`wss://`**, não `ws://` — página HTTPS não abre WebSocket inseguro
-* o sufixo **`/ws`** é obrigatório, é a rota do servidor
-* variáveis `NEXT_PUBLIC_*` são embutidas **no build**; mudar depois exige
-  redeploy
+* **Type = Config.** A Vercel recusa `NEXT_PUBLIC_*` como *Secret*, e com razão:
+  esse prefixo embute o valor no JavaScript entregue ao browser — ele é público
+  por definição. Marcar como Secret prometeria um sigilo que não existe.
+* **`wss://`**, não `ws://` — página HTTPS não abre WebSocket inseguro (o
+  browser bloqueia como conteúdo misto). É só um `s`, e é o erro mais comum.
+* O sufixo **`/ws`** é obrigatório, é a rota do servidor.
+* `NEXT_PUBLIC_*` é embutida **no build**; mudar depois exige **redeploy**.
+
+> Use a URL real do seu serviço no Render, copiada do dashboard dele.
+> `jusqs-server.onrender.com` neste documento é só exemplo.
 
 ### 3.3 Deploy
 

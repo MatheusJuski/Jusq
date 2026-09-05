@@ -61,5 +61,18 @@ export function getSignalingUrl(): string {
     );
   }
 
+  // Página HTTPS não abre WebSocket inseguro: o browser bloqueia como conteúdo
+  // misto, e o erro que ele reporta não diz que a causa foi o esquema.
+  if (
+    typeof window !== 'undefined' &&
+    window.location.protocol === 'https:' &&
+    url.startsWith('ws://')
+  ) {
+    throw new Error(
+      `NEXT_PUBLIC_SIGNALING_URL usa ws:// numa página HTTPS: "${url}". ` +
+        'O browser bloqueia conteúdo misto — troque para wss:// (só o "s").',
+    );
+  }
+
   return url;
 }
