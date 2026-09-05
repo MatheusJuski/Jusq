@@ -114,8 +114,4 @@ e [`DOCs/DEPLOY.md`](DOCs/DEPLOY.md) para hospedagem e custos.
   áudio entrar (Phase 3), isso vira um controle de mute acionado por gesto do
   usuário.
 
----
 
-## Licença
-
-A definir.
