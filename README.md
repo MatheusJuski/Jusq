@@ -89,13 +89,13 @@ O objetivo desta fase é **fazer funcionar**, não fazer bonito.
 * signaling via WebSocket
 * salas em memória (`Map()`)
 * WebRTC peer-to-peer, mesh de até 4 peers
-* compartilhamento de tela
+* compartilhamento de tela, com áudio quando disponível
 
 **Está fora — deliberadamente:**
 
 * TURN, persistência, reconexão
 * Docker, PostgreSQL, Redis, CI, testes
-* autenticação, áudio, gravação, métricas
+* autenticação, gravação, câmera, métricas de qualidade
 
 Nada disso foi descartado; é a Phase 1 em diante. Ver
 [`DOCs/DocumentaçãoV0.1.md`](DOCs/Documenta%C3%A7%C3%A3oV0.1.md) para o roadmap
@@ -108,10 +108,13 @@ e [`DOCs/DEPLOY.md`](DOCs/DEPLOY.md) para hospedagem e custos.
 * **Sem TURN.** Entre redes diferentes com NAT simétrico a conexão falha. É
   esse problema que justifica o TURN na Phase 1.
 * **Estado volátil.** Reiniciar o servidor derruba todas as salas.
-* **Vídeo sempre mudo.** A captura é `audio: false`, e o elemento `<video>`
-  precisa estar `muted` para o browser autorizar o autoplay — sem isso a
-  reprodução é barrada com `NotAllowedError` e a tela fica preta. Quando o
-  áudio entrar (Phase 3), isso vira um controle de mute acionado por gesto do
-  usuário.
+* **Som começa desligado.** O browser só autoriza autoplay com o elemento
+  `muted`; sem isso a reprodução é barrada com `NotAllowedError` e a tela fica
+  preta. O painel remoto traz um botão **SOM** — o clique é o gesto que o
+  browser exige para liberar o áudio.
+* **Áudio depende do que o usuário marcar.** `getDisplayMedia` só entrega
+  áudio se a opção for marcada no seletor do browser, e ela não existe ao
+  compartilhar uma **janela isolada** — apenas aba ou tela inteira. O painel
+  indica `SEM ÁUDIO` quando o stream vem só com vídeo.
 
 

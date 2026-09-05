@@ -166,7 +166,8 @@ export class RoomClient {
     try {
       stream = await navigator.mediaDevices.getDisplayMedia({
         video: true,
-        audio: false, // Áudio é Phase 3.
+        // Se não coloca o seletor de audio a strem não começava
+        audio: true,
       });
     } catch (error) {
       // Cancelar o seletor de tela do browser cai aqui. Não é erro.
@@ -198,11 +199,13 @@ export class RoomClient {
     this.#localStream = null;
     this.#handlers.onLocalStream(null);
 
-    // Remove as trilhas das conexões. Renegociação completa é Phase 3.
-    for (const { pc } of this.#peers.values()) {
-      for (const sender of pc.getSenders()) {
-        if (sender.track) pc.removeTrack(sender);
-      }
+    // Remover as trilhas não basta: `removeTrack` só altera o estado local. Sem uma nova offer o outro lado nunca fica sabendo, e o <video> dele congela no último quadro recebido. É a renegociação que encerra a transmissão de fato.
+    for (const [peerId, state] of this.#peers) {
+      const active = state.pc.getSenders().filter((s) => s.track !== null);
+      if (active.length === 0) continue;
+
+      for (const sender of active) state.pc.removeTrack(sender);
+      this.#enqueue(peerId, () => this.#makeOffer(peerId, state.pc));
     }
   }
 
@@ -391,7 +394,19 @@ export class RoomClient {
 
     pc.addEventListener('track', (event) => {
       const [stream] = event.streams;
-      if (stream) this.#handlers.onRemoteStream(peerId, stream);
+      if (!stream) return;
+
+      this.#handlers.onRemoteStream(peerId, stream);
+
+      // Quando o outro lado para de transmitir e renegocia, o browser retira a trilha deste stream. Sem tratar o evento, o painel continuaria exibindo o último quadro como se ainda houvesse transmissão.
+      const dropIfEmpty = (): void => {
+        if (stream.getTracks().length === 0) {
+          this.#handlers.onRemoteStreamEnded(peerId);
+        }
+      };
+
+      stream.addEventListener('removetrack', dropIfEmpty);
+      event.track.addEventListener('ended', dropIfEmpty);
     });
 
     pc.addEventListener('connectionstatechange', () => {
@@ -433,15 +448,6 @@ export class RoomClient {
 
   /* --------------------------------------------------------- diagnóstico */
 
-  /**
-   * Fotografia do estado real de cada conexão.
-   *
-   * Regra de leitura quando a tela está preta:
-   *
-   * - `inboundBytes` cresce  -> a mídia chega; o problema é renderização
-   * - `inboundBytes` em zero -> a mídia não chega; olhe ICE e o par escolhido
-   * - `selectedPair` nulo    -> ICE não fechou nenhum caminho
-   */
   async getDiagnostics(): Promise<PeerDiagnostics[]> {
     const result: PeerDiagnostics[] = [];
 

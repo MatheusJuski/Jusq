@@ -1103,6 +1103,7 @@ O menor caminho até algo que funciona. Sem banco, sem Docker, sem CI.
 * [ ] WebRTC signaling
 * [ ] Criar sala + link compartilhável
 * [ ] Compartilhar tela entre dois browsers
+* [ ] Áudio da tela compartilhada *(antecipado da Phase 3)*
 * [ ] Deploy do web (Vercel)
 * [ ] Deploy do server (Render)
 
@@ -1159,7 +1160,9 @@ A plataforma que hospeda os demais experimentos.
 
 Retomada do Screen Lab a partir do V2.
 
-* [ ] Áudio
+> `Áudio` saiu desta fase: foi antecipado para a Phase 0, porque uma
+> transmissão de tela sem som não cumpre o propósito do experimento.
+
 * [ ] Câmera
 * [ ] Mute
 * [ ] Seleção de dispositivo
