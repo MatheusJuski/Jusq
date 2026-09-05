@@ -64,6 +64,20 @@ jusqs/
 | `pnpm build` | build de todos os pacotes |
 | `pnpm typecheck` | typecheck de todos os pacotes |
 
+## Deploy
+
+O projeto roda inteiro em free tier (R$ 0/mês).
+
+* [`DOCs/TUTORIAL-DEPLOY.md`](DOCs/TUTORIAL-DEPLOY.md) — passo a passo
+* [`DOCs/DEPLOY.md`](DOCs/DEPLOY.md) — estratégia, custos e limites
+
+Para reproduzir o build de produção do servidor localmente:
+
+```bash
+docker build -f apps/server/Dockerfile -t jusqs-server .
+docker run --rm -p 3001:8000 -e PORT=8000 jusqs-server
+```
+
 ---
 
 ## Escopo do V0

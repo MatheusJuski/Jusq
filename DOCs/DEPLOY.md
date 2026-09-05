@@ -3,6 +3,10 @@
 > **Veredito: R$ 0,00/mês.** O Jusq's roda inteiro em free tier, incluindo a parte
 > historicamente cara (WebRTC / TURN).
 
+> Para o passo a passo executável, ver
+> [`TUTORIAL-DEPLOY.md`](./TUTORIAL-DEPLOY.md). Este documento é a estratégia:
+> custos, limites e por que cada serviço foi escolhido.
+
 **Verificado em:** setembro/2026
 **Status:** free tier muda com frequência — revalidar antes de cada mudança de infra.
 
@@ -27,7 +31,7 @@ Zero configuração de servidor. Deploy no mesmo dia.
 | Componente | Serviço | Limite relevante |
 | ---------- | ------- | ---------------- |
 | Web (Next.js) | Vercel Hobby | Grátis — **uso não-comercial** |
-| Server (Fastify + WS) | **Koyeb** free | 1 serviço, WebSocket OK, sem cartão — **dorme** |
+| Server (Fastify + WS) | **Render** free | Docker + WebSocket, 750 h/mês — **dorme após 15 min** |
 | PostgreSQL | **Neon** free | 0,5 GB storage, 5 GB transfer/mês, acorda em <500ms |
 | TURN + SFU | Cloudflare Realtime | 1 TB/mês grátis, depois $0,05/GB |
 | Storage / R2 | Cloudflare R2 | 10 GB, **egress zero** |
@@ -48,7 +52,7 @@ Zero configuração de servidor. Deploy no mesmo dia.
              │                          │
              ▼                          ▼
       ┌─────────────┐              Client A ←→ B
-      │    Koyeb    │
+      │   Render    │
       │   Fastify   │
       │  WS + Sign. │
       └──────┬──────┘
@@ -61,9 +65,13 @@ Zero configuração de servidor. Deploy no mesmo dia.
    └──────┘     └──────┘
 ```
 
-**Trade-off:** o Koyeb usa *scale-to-zero*. O serviço dorme sem uso e acorda sob
-demanda — quem abrir o link espera o cold start. Chato para uma demo realtime,
-mas não impeditivo.
+**Trade-off:** o Render dorme após **15 minutos sem tráfego** (HTTP ou mensagem
+WebSocket) e leva **~1 minuto** para acordar. Quem abrir o link com o serviço
+frio espera esse minuto. Chato para uma demo realtime, mas não impeditivo.
+
+> Uma sessão já estabelecida **não cai** se o serviço dormir: depois do ICE, a
+> mídia é peer-to-peer e não passa pelo servidor. O que falha é alguém novo
+> tentar entrar enquanto ele acorda.
 
 ---
 
@@ -101,8 +109,9 @@ Erros comuns em tutoriais desatualizados:
 
 | Serviço | Problema |
 | ------- | -------- |
-| **Render** (free) | **WebSocket só em plano pago.** Inviabiliza o Jusq's inteiro |
+| **Koyeb** (free) | **Acabou.** Adquirido pela Mistral em fev/2026; o plano Starter gratuito foi removido e novos usuários precisam assinar |
 | **Fly.io** (free) | Free tier acabou. Hoje é trial de 2h de VM ou 7 dias |
+| **Vercel / Netlify** (para o server) | Não sustentam processo vivo — sem WebSocket. Servem só o front |
 | **Supabase** (free) | **Pausa o projeto após 1 semana de inatividade** e derruba a Auth API junto — a demo do portfólio quebra toda vez |
 
 O Neon foi escolhido no lugar do Supabase justamente por isso: ele suspende, mas
@@ -133,7 +142,7 @@ Seriam necessárias centenas de horas de demo por mês para encostar no limite.
 
 ## 🛡️ Regras de proteção
 
-1. **Não cadastrar cartão** onde não for exigido (Koyeb e Neon não pedem).
+1. **Não cadastrar cartão** onde não for exigido (Render e Neon não pedem).
    É a proteção mais eficaz contra cobrança inesperada.
 2. **Manter o repositório público** — GitHub Actions fica ilimitado.
 3. **Definir spend limit** em qualquer serviço que exija cartão.
@@ -164,12 +173,12 @@ signaling.
 
 * [ ] Repositório público no GitHub
 * [ ] Conta Vercel (login via GitHub)
-* [ ] Conta Koyeb (sem cartão)
+* [ ] Conta Render (sem cartão)
 * [ ] Conta Neon (sem cartão) + connection string
 * [ ] Conta Cloudflare + credenciais TURN
 * [ ] Bucket R2 criado
+* [ ] Deploy do `apps/server` no Render *(primeiro — a Vercel precisa da URL)*
 * [ ] Deploy do `apps/web` na Vercel
-* [ ] Deploy do `apps/server` no Koyeb
 * [ ] Variáveis de ambiente configuradas nos dois
 * [ ] WebSocket conectando de ponta a ponta em produção
 * [ ] GitHub Actions rodando lint + typecheck
@@ -182,7 +191,8 @@ signaling.
 
 * [Fly.io Free Tier 2026](https://www.saaspricepulse.com/blog/flyio-free-tier-2026)
 * [Platforms with a real free tier for developers in 2026 (Render)](https://render.com/articles/platforms-with-a-real-free-tier-for-developers-in-2026)
-* [Koyeb Free Tier 2026](https://www.srvrlss.io/provider/koyeb/)
+* [Render — Free instance limits (docs oficiais)](https://render.com/docs/free)
+* [Mistral AI buys Koyeb (TechCrunch, fev/2026)](https://techcrunch.com/2026/02/17/mistral-ai-buys-koyeb-in-first-acquisition-to-back-its-cloud-ambitions/)
 * [Cloudflare Realtime — SFU/TURN pricing](https://developers.cloudflare.com/realtime/sfu/pricing)
 * [Oracle Quietly Halves Free Tier Ampere A1 Compute Limits (InfoQ)](https://www.infoq.com/news/2026/07/oracle-cloud-free-tier-limits/)
 * [Oracle Always Free Resources (docs oficiais)](https://docs.oracle.com/en-us/iaas/Content/FreeTier/freetier_topic-Always_Free_Resources.htm)

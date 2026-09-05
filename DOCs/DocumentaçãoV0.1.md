@@ -1002,7 +1002,8 @@ Tipos de testes:
 # 🐳 Infraestrutura
 
 > **Quando entra:** Phase 1. O V0 roda com `pnpm dev` e faz deploy direto em
-> Vercel + Koyeb. Docker só entra quando houver banco para orquestrar.
+> Vercel + Render. Docker entra aqui apenas como formato de deploy do
+> servidor; como ambiente local, só quando houver banco para orquestrar.
 
 ## Docker
 
@@ -1103,7 +1104,7 @@ O menor caminho até algo que funciona. Sem banco, sem Docker, sem CI.
 * [ ] Criar sala + link compartilhável
 * [ ] Compartilhar tela entre dois browsers
 * [ ] Deploy do web (Vercel)
-* [ ] Deploy do server (Koyeb)
+* [ ] Deploy do server (Render)
 
 ### Critério de conclusão
 

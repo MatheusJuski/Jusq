@@ -1,0 +1,18 @@
+node_modules
+**/node_modules
+**/dist
+**/.next
+**/.turbo
+
+.git
+.gitignore
+
+DOCs
+README.md
+
+**/.env
+**/.env.local
+**/*.log
+
+# O web e servido pela Vercel, nao pela imagem do servidor.
+apps/web

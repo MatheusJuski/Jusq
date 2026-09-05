@@ -26,6 +26,9 @@ importers:
       '@types/node':
         specifier: ^22.10.0
         version: 22.20.1
+      esbuild:
+        specifier: ^0.28.2
+        version: 0.28.2
       pino-pretty:
         specifier: ^13.0.0
         version: 13.1.3
