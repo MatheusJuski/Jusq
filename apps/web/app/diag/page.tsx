@@ -28,6 +28,12 @@ interface Variant {
   label: string;
   detail: string;
   options: ProbeOptions;
+  /**
+   * Roda antes do pedido de captura. O stream devolvido é mantido aberto
+   * durante a captura e encerrado no fim — devolva `null` para não manter
+   * nada aberto.
+   */
+  prepare?: () => Promise<MediaStream | null>;
 }
 
 const VARIANTS: Variant[] = [
@@ -77,6 +83,24 @@ const VARIANTS: Variant[] = [
       systemAudio: 'include',
     },
   },
+  {
+    id: 'mic-first',
+    label: 'após permissão de microfone',
+    detail: 'abre e fecha o microfone antes — inicializa o serviço de áudio',
+    options: { video: true, audio: true, systemAudio: 'include' },
+    prepare: async () => {
+      const mic = await navigator.mediaDevices.getUserMedia({ audio: true });
+      for (const track of mic.getTracks()) track.stop();
+      return null;
+    },
+  },
+  {
+    id: 'mic-open',
+    label: 'com microfone aberto',
+    detail: 'mantém o microfone ativo durante a captura — é o estado do Meet',
+    options: { video: true, audio: true, systemAudio: 'include' },
+    prepare: () => navigator.mediaDevices.getUserMedia({ audio: true }),
+  },
 ];
 
 interface Result {
@@ -123,7 +147,11 @@ export default function DiagPage() {
 
   async function run(variant: Variant) {
     setRunning(variant.id);
+    let prepared: MediaStream | null = null;
+
     try {
+      prepared = variant.prepare ? await variant.prepare() : null;
+
       const stream = await navigator.mediaDevices.getDisplayMedia(
         variant.options as DisplayMediaStreamOptions,
       );
@@ -162,6 +190,7 @@ export default function DiagPage() {
         },
       }));
     } finally {
+      if (prepared) for (const track of prepared.getTracks()) track.stop();
       setRunning(null);
     }
   }
@@ -176,6 +205,12 @@ export default function DiagPage() {
         <strong className="text-sky">tela inteira</strong> e marque{' '}
         <strong className="text-sky">compartilhar áudio do sistema</strong>. A
         captura é encerrada assim que o resultado é lido.
+      </p>
+      <p className="mt-3 max-w-xl text-[13px] leading-relaxed text-denim/70">
+        As duas últimas variantes pedem o microfone antes. Na primeira vez o
+        navegador vai perguntar pela permissão, e esse diálogo pode consumir o
+        gesto que a captura de tela exige — se der erro de ativação, basta
+        clicar em testar de novo.
       </p>
 
       {env && (

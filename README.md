@@ -123,11 +123,53 @@ e [`DOCs/DEPLOY.md`](DOCs/DEPLOY.md) para hospedagem e custos.
   | Fonte | Áudio |
   | ----- | ----- |
   | Aba do navegador | sim — marque "compartilhar áudio da guia" |
-  | Tela inteira | só no Windows, marcando "áudio do sistema", e nem sempre |
   | Janela isolada | **nunca** — nenhum browser suporta |
+  | Tela inteira | teoricamente sim; na prática, ver abaixo |
+  | Dispositivo de entrada | sim — caminho alternativo, sempre disponível |
 
   Quando a captura de áudio falha, a transmissão continua **só com vídeo** em
   vez de não acontecer: `getDisplayMedia` trata `audio: true` como obrigatório
   e derrubaria o vídeo junto.
+
+  Para som de um programa fora do navegador (um jogo, por exemplo), o caminho
+  confiável é **desacoplar as fontes**: vídeo da captura de tela, áudio de um
+  dispositivo de entrada (`Mixagem Estéreo` no Windows, ou um cabo virtual).
+  É isso que o seletor de fonte de áudio da sala faz.
+
+### Áudio de tela inteira: investigação encerrada
+
+Capturar o áudio do sistema junto da tela inteira falha com
+`NotReadableError: Could not start audio source` em pelo menos uma máquina
+Windows 11 / Chromium 152, e **não há correção do lado da aplicação**.
+
+O que foi descartado por medição, não por suposição:
+
+| Hipótese | Resultado |
+| -------- | --------- |
+| Formato do pedido | 5 variantes testadas — falha idêntica em todas |
+| `systemAudio: 'include'` | não altera nada |
+| Restrições de áudio | não alteram nada |
+| HTTP vs HTTPS | falha em `localhost` e em produção |
+| Versão do Chromium | 152, muito acima do 142 exigido pelo recurso |
+| Navegador | falha em Brave e Edge |
+| Escudo do Brave | falha com proteção desligada |
+
+O `getDisplayMedia` rejeita **antes** de entregar qualquer trilha — a
+`displaySurface` volta vazia.
+
+O Google Meet **captura com sucesso** na mesma máquina, no mesmo navegador,
+com áudio confirmado por outro participante. E usa a mesma API —
+`getDisplayMedia` com `systemAudio`, disponível a partir do Chrome 142. Não
+há caminho privilegiado nem origem allowlistada.
+
+Sendo o mesmo pedido no mesmo ambiente, resta uma diferença de **estado**: no
+Meet o microfone já está aberto quando a tela é compartilhada. Nossa
+aplicação não toca em nenhum dispositivo de áudio antes de pedir a captura.
+
+O [Jitsi Meet chegou ao mesmo ponto](https://github.com/jitsi/jitsi-meet/issues/15418)
+e fechou a issue como *not planned*.
+
+> Não reabra essa investigação sem um dado novo. O caminho que funciona é o
+> dispositivo de entrada.
 
 
