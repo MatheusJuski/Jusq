@@ -90,6 +90,7 @@ O objetivo desta fase é **fazer funcionar**, não fazer bonito.
 * salas em memória (`Map()`)
 * WebRTC peer-to-peer, mesh de até 4 peers
 * compartilhamento de tela, com áudio quando disponível
+* perfis de qualidade (480p a 1080p, 30/60fps) com teto de bitrate
 
 **Está fora — deliberadamente:**
 
@@ -105,6 +106,10 @@ e [`DOCs/DEPLOY.md`](DOCs/DEPLOY.md) para hospedagem e custos.
 
 * **Um transmissor por vez.** Dois peers compartilhando ao mesmo tempo causam
   glare na negociação. Perfect negotiation é Phase 3.
+* **Malha mesh, teto de 4 peers.** Cada espectador recebe uma cópia própria, e
+  quem transmite envia todas elas. A 720p30 (1,5 Mbps), três espectadores já
+  custam ~4,5 Mbps de upload — é esse crescimento linear que justifica um SFU
+  na Phase 3.
 * **Sem TURN.** Entre redes diferentes com NAT simétrico a conexão falha. É
   esse problema que justifica o TURN na Phase 1.
 * **Estado volátil.** Reiniciar o servidor derruba todas as salas.

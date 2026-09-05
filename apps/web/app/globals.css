@@ -21,7 +21,7 @@ body {
   min-height: 100vh;
 }
 
-/* Grade sutil de fundo — referência visual de "instrumento", não de SaaS. */
+/* Grade sutil de fundo - referência visual de "instrumento", não de SaaS. */
 body::before {
   content: '';
   position: fixed;

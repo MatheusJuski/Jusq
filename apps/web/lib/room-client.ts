@@ -8,6 +8,15 @@ import type {
 } from '@jusqs/types';
 
 import { getIceServers, getSignalingUrl } from './ice';
+import {
+  AUDIO_BITRATE,
+  AUDIO_CONSTRAINTS,
+  DEFAULT_QUALITY_ID,
+  findPreset,
+  tuneOpus,
+  videoConstraints,
+  type QualityPreset,
+} from './quality';
 
 export type ConnectionStatus =
   | 'idle'
@@ -87,6 +96,7 @@ export class RoomClient {
   readonly #handlers: RoomClientHandlers;
   readonly #peers = new Map<PeerId, PeerState>();
 
+  #quality: QualityPreset = findPreset(DEFAULT_QUALITY_ID);
   #socket: WebSocket | null = null;
   #selfId: PeerId | null = null;
   #localStream: MediaStream | null = null;
@@ -165,9 +175,11 @@ export class RoomClient {
     let stream: MediaStream;
     try {
       stream = await navigator.mediaDevices.getDisplayMedia({
-        video: true,
-        // Se não coloca o seletor de audio a strem não começava
-        audio: true,
+        video: videoConstraints(this.#quality),
+        // Pedir áudio não garante recebê-lo: o browser só entrega se o usuário
+        // marcar a opção no seletor, e ela não existe ao compartilhar uma
+        // janela isolada — apenas aba ou tela inteira.
+        audio: AUDIO_CONSTRAINTS,
       });
     } catch (error) {
       // Cancelar o seletor de tela do browser cai aqui. Não é erro.
@@ -181,7 +193,10 @@ export class RoomClient {
 
     // O usuário pode parar pelo botão nativo do browser, fora da nossa UI.
     const [track] = stream.getVideoTracks();
-    track?.addEventListener('ended', () => this.stopSharing());
+    if (track) {
+      track.contentHint = this.#quality.contentHint;
+      track.addEventListener('ended', () => this.stopSharing());
+    }
 
     // Oferta para todos os peers já conhecidos, cada uma na fila do seu peer.
     for (const [peerId, state] of this.#peers) {
@@ -211,6 +226,41 @@ export class RoomClient {
 
   get isSharing(): boolean {
     return this.#localStream !== null;
+  }
+
+  get quality(): QualityPreset {
+    return this.#quality;
+  }
+
+  /**
+   * Troca o perfil de qualidade.
+   *
+   * Se já houver transmissão, aplica ao vivo — `applyConstraints` reconfigura a
+   * captura sem pedir a tela de novo, e os tetos de bitrate são reaplicados.
+   * Sem transmissão, vale a partir da próxima captura.
+   */
+  async setQuality(id: string): Promise<void> {
+    const preset = findPreset(id);
+    this.#quality = preset;
+
+    const stream = this.#localStream;
+    if (!stream) return;
+
+    const [track] = stream.getVideoTracks();
+    if (track) {
+      track.contentHint = preset.contentHint;
+      try {
+        await track.applyConstraints(videoConstraints(preset));
+      } catch {
+        this.#handlers.onError(
+          `a fonte não aceitou ${preset.label} — mantendo o que estava`,
+        );
+      }
+    }
+
+    for (const state of this.#peers.values()) {
+      await this.#applySenderLimits(state.pc);
+    }
   }
 
   get selfId(): PeerId | null {
@@ -303,13 +353,14 @@ export class RoomClient {
         if (this.#localStream) this.#attachLocalTracks(pc);
 
         const answer = await pc.createAnswer();
-        await pc.setLocalDescription(answer);
+        // O ajuste precisa ir nos dois lados: `stereo=1` na answer é o que
+        // declara que este peer aceita receber estéreo.
+        const sdp = tuneOpus(answer.sdp ?? '', AUDIO_BITRATE);
 
-        this.#send({
-          type: 'signal',
-          to: from,
-          payload: { kind: 'answer', sdp: answer.sdp ?? '' },
-        });
+        await pc.setLocalDescription({ type: 'answer', sdp });
+        await this.#applySenderLimits(pc);
+
+        this.#send({ type: 'signal', to: from, payload: { kind: 'answer', sdp } });
 
         await this.#flushPendingIce(state);
         return;
@@ -433,13 +484,51 @@ export class RoomClient {
 
   async #makeOffer(peerId: PeerId, pc: RTCPeerConnection): Promise<void> {
     const offer = await pc.createOffer();
-    await pc.setLocalDescription(offer);
+    const sdp = tuneOpus(offer.sdp ?? '', AUDIO_BITRATE);
 
-    this.#send({
-      type: 'signal',
-      to: peerId,
-      payload: { kind: 'offer', sdp: offer.sdp ?? '' },
-    });
+    await pc.setLocalDescription({ type: 'offer', sdp });
+    await this.#applySenderLimits(pc);
+
+    this.#send({ type: 'signal', to: peerId, payload: { kind: 'offer', sdp } });
+  }
+
+  /**
+   * Aplica os tetos de bitrate e framerate nos senders.
+   *
+   * Complementa as restrições de captura: elas limitam a **fonte**, isto limita
+   * o que vai para a rede. Sem este teto o encoder decide sozinho quanto gastar,
+   * e numa malha mesh esse número é multiplicado por espectador.
+   *
+   * Só vale depois de `setLocalDescription` — antes disso não há encodings.
+   */
+  async #applySenderLimits(pc: RTCPeerConnection): Promise<void> {
+    for (const sender of pc.getSenders()) {
+      const kind = sender.track?.kind;
+      if (!kind) continue;
+
+      const params = sender.getParameters();
+      // Navegador pode devolver encodings vazio antes da negociação concluir.
+      if (!params.encodings || params.encodings.length === 0) {
+        params.encodings = [{}];
+      }
+
+      const encoding = params.encodings[0];
+      if (!encoding) continue;
+
+      if (kind === 'video') {
+        encoding.maxBitrate = this.#quality.maxVideoBitrate;
+        encoding.maxFramerate = this.#quality.frameRate;
+      } else {
+        encoding.maxBitrate = AUDIO_BITRATE;
+      }
+
+      try {
+        await sender.setParameters(params);
+      } catch {
+        // setParameters falha se a transação expirou (outra alteração passou
+        // na frente). A próxima renegociação reaplica.
+      }
+    }
   }
 
   #emitPeers(): void {

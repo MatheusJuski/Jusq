@@ -6,7 +6,7 @@ import { useState } from 'react';
 /**
  * Gera um id de sala curto e legível.
  *
- * Não é seguro por obscuridade — qualquer um com o link entra. Controle de
+ * Não é seguro por obscuridade - qualquer um com o link entra. Controle de
  * acesso é Phase 2, junto com autenticação.
  */
 function newRoomId(): string {
@@ -35,7 +35,7 @@ export default function HomePage() {
         <h2 className="text-xl font-bold">Screen Lab</h2>
         <p className="mt-2 text-sm text-lab-dim">
           Compartilhamento de tela peer-to-peer via WebRTC. A mídia trafega
-          direto entre os navegadores — o servidor só intermedia a negociação.
+          direto entre os navegadores - o servidor só intermedia a negociação.
         </p>
 
         <div className="mt-6 flex flex-col gap-3 sm:flex-row">
@@ -75,10 +75,10 @@ export default function HomePage() {
       <section className="text-xs leading-relaxed text-lab-dim">
         <div className="mb-2 tracking-widest">PRÓXIMOS EXPERIMENTOS</div>
         <ul className="space-y-1">
-          <li>◌ Draw Lab — desenho colaborativo realtime</li>
-          <li>◌ GitHub RPG — atividade do GitHub como RPG</li>
-          <li>◌ RPG Lab — geração procedural de mundos</li>
-          <li>◌ Simulation Lab — ecossistema artificial</li>
+          <li>◌ Draw Lab - desenho colaborativo realtime</li>
+          <li>◌ GitHub RPG - atividade do GitHub como RPG</li>
+          <li>◌ RPG Lab - geração procedural de mundos</li>
+          <li>◌ Simulation Lab - ecossistema artificial</li>
         </ul>
       </section>
     </div>

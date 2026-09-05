@@ -74,7 +74,7 @@ export type ServerMessage =
  * O custo cresce em O(n²), por isso o teto baixo.
  * Superar isso exige um SFU — Phase 3.
  */
-export const MAX_PEERS_PER_ROOM = 4;
+export const MAX_PEERS_PER_ROOM = 6;
 
 /** Descarta mensagens absurdas antes de tentar fazer parse. */
 export const MAX_MESSAGE_BYTES = 64 * 1024;

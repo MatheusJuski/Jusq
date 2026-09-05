@@ -10,6 +10,7 @@ import {
   type ConnectionStatus,
   type PeerDiagnostics,
 } from '@/lib/room-client';
+import { DEFAULT_QUALITY_ID, QUALITY_PRESETS } from '@/lib/quality';
 
 const STATUS_LABEL: Record<ConnectionStatus, string> = {
   idle: 'AGUARDANDO',
@@ -44,8 +45,9 @@ export default function RoomPage() {
   const [diagnostics, setDiagnostics] = useState<PeerDiagnostics[]>([]);
 
   // Som começa desligado por peer: o autoplay só é autorizado com o elemento
-  // mudo. Ligar exige um clique — que é justamente o gesto que o browser pede.
+  // mudo. Ligar exige um clique - que é justamente o gesto que o browser pede.
   const [audioOn, setAudioOn] = useState<Set<PeerId>>(new Set());
+  const [quality, setQuality] = useState(DEFAULT_QUALITY_ID);
 
   const toggleAudio = useCallback((peerId: PeerId) => {
     setAudioOn((prev) => {
@@ -137,7 +139,28 @@ export default function RoomPage() {
           <span className="text-lab-dim">PEERS {peers.length}</span>
         </div>
 
-        <div className="flex gap-2">
+        <div className="flex flex-wrap items-center gap-2">
+          <label className="flex items-center gap-2 text-xs tracking-widest text-lab-dim">
+            QUALIDADE
+            <select
+              value={quality}
+              onChange={(event) => {
+                const id = event.target.value;
+                setQuality(id);
+                // Aplica ao vivo se já estiver transmitindo; caso contrário
+                // vale a partir da próxima captura.
+                void clientRef.current?.setQuality(id);
+              }}
+              className="cursor-pointer border border-lab-border bg-lab-bg px-2 py-2 text-xs text-lab-text outline-none focus:border-lab-dim"
+            >
+              {QUALITY_PRESETS.map((preset) => (
+                <option key={preset.id} value={preset.id}>
+                  {preset.label}
+                </option>
+              ))}
+            </select>
+          </label>
+
           <button
             type="button"
             onClick={copyLink}
@@ -258,7 +281,7 @@ export default function RoomPage() {
       )}
 
       <p className="text-xs leading-relaxed text-lab-dim">
-        V0 — sem TURN, sem persistência, sem reconexão. Se a conexão falhar
+        V0 - sem TURN, sem persistência, sem reconexão. Se a conexão falhar
         entre redes diferentes, é o NAT: é exatamente esse problema que
         justifica o TURN na Phase 1.
       </p>
@@ -333,7 +356,7 @@ function StreamVideo({
       // O atributo autoPlay do elemento também dispara a reprodução; quando ela chega primeiro, este play() é abortado. É esperado, não é falha.
       if (error.name === 'AbortError') return;
 
-      onPlayError?.(`reprodução bloqueada (${error.name}) — clique no vídeo`);
+      onPlayError?.(`reprodução bloqueada (${error.name}) - clique no vídeo`);
     });
 
     return () => {
@@ -397,7 +420,7 @@ function DiagnosticsTable({ rows }: { rows: PeerDiagnostics[] }) {
                     {row.iceConnectionState}
                   </td>
                   <td className="py-2 pr-4 text-lab-dim">
-                    {row.selectedPair ?? '—'}
+                    {row.selectedPair ?? '-'}
                   </td>
                   <td className="py-2 pr-4 text-lab-dim">
                     {row.sentCandidates}/{row.receivedCandidates}
