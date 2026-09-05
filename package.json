@@ -1,0 +1,17 @@
+{
+  "name": "jusqs",
+  "version": "0.1.0",
+  "private": true,
+  "description": "A personal playground for realtime systems, games, simulations and digital experiments.",
+  "packageManager": "pnpm@11.25.0",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "dev": "pnpm --parallel --filter \"./apps/*\" dev",
+    "dev:web": "pnpm --filter @jusqs/web dev",
+    "dev:server": "pnpm --filter @jusqs/server dev",
+    "build": "pnpm -r build",
+    "typecheck": "pnpm -r typecheck"
+  }
+}

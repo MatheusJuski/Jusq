@@ -1,0 +1,36 @@
+@import 'tailwindcss';
+
+@theme {
+  --color-lab-bg: #0a0c10;
+  --color-lab-panel: #11151c;
+  --color-lab-border: #1e2530;
+  --color-lab-text: #c9d4e3;
+  --color-lab-dim: #64748b;
+  --color-lab-accent: #4ade80;
+  --color-lab-warn: #fbbf24;
+  --color-lab-error: #f87171;
+
+  --font-mono: ui-monospace, 'Cascadia Code', 'JetBrains Mono', Consolas, monospace;
+}
+
+html,
+body {
+  background: var(--color-lab-bg);
+  color: var(--color-lab-text);
+  font-family: var(--font-mono);
+  min-height: 100vh;
+}
+
+/* Grade sutil de fundo — referência visual de "instrumento", não de SaaS. */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  background-image:
+    linear-gradient(var(--color-lab-border) 1px, transparent 1px),
+    linear-gradient(90deg, var(--color-lab-border) 1px, transparent 1px);
+  background-size: 48px 48px;
+  opacity: 0.25;
+}
