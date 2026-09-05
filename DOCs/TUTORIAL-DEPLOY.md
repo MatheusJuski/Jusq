@@ -319,6 +319,18 @@ a raiz do repo, não `apps/server`.
 Faltou `PORT=10000` nas variáveis de ambiente. O Render procura o processo na
 porta 10000; o padrão do código é 3001, e ele não encontra nada.
 
+### `WebSocket connection to 'wss://<seu-site>/room/NEXT_PUBLIC_SIGNALING_URL' failed`
+
+O campo **Value** da variável na Vercel ficou com o **nome** da variável em vez
+do valor. Sem `wss://` na frente, o browser trata a string como caminho
+relativo e tenta abrir o WebSocket contra a própria página.
+
+Corrija o Value para `wss://<seu-server>.onrender.com/ws` e **refaça o
+deploy** — `NEXT_PUBLIC_*` é embutida no build.
+
+> A partir da versão atual o app rejeita esse valor e mostra a causa no painel
+> de diagnóstico, em vez de montar uma URL sem sentido.
+
 ### Vercel: `Module not found: @jusqs/types`
 
 Root Directory não está como `apps/web`, ou a opção de incluir arquivos fora do

@@ -104,7 +104,19 @@ export class RoomClient {
 
     this.#handlers.onStatus('connecting');
 
-    const socket = new WebSocket(getSignalingUrl());
+    let url: string;
+    try {
+      url = getSignalingUrl();
+    } catch (error) {
+      // Configuração inválida não é falha de rede: sem isso o erro apareceria como "WebSocket failed" apontando para a própria página.
+      this.#handlers.onStatus('error');
+      this.#handlers.onError(
+        error instanceof Error ? error.message : String(error),
+      );
+      return;
+    }
+
+    const socket = new WebSocket(url);
     this.#socket = socket;
 
     socket.addEventListener('open', () => {
