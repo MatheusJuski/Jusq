@@ -146,7 +146,10 @@ O que foi descartado por medição, não por suposição:
 
 | Hipótese | Resultado |
 | -------- | --------- |
-| Formato do pedido | 5 variantes testadas — falha idêntica em todas |
+| Formato do pedido | 9 variantes — todas as opções da especificação, falha idêntica |
+| Microfone aberto antes / durante | não altera nada |
+| Saída de áudio ativa durante a captura | não altera nada |
+| Captura de **aba** | **funciona** — caminho interno do Chrome, sem o SO |
 | `systemAudio: 'include'` | não altera nada |
 | Restrições de áudio | não alteram nada |
 | HTTP vs HTTPS | falha em `localhost` e em produção |
@@ -162,14 +165,25 @@ com áudio confirmado por outro participante. E usa a mesma API —
 `getDisplayMedia` com `systemAudio`, disponível a partir do Chrome 142. Não
 há caminho privilegiado nem origem allowlistada.
 
-Sendo o mesmo pedido no mesmo ambiente, resta uma diferença de **estado**: no
-Meet o microfone já está aberto quando a tela é compartilhada. Nossa
-aplicação não toca em nenhum dispositivo de áudio antes de pedir a captura.
+A falha é exclusiva do caminho do **sistema operacional**: capturar aba usa um
+mecanismo interno do Chrome e funciona; capturar tela ou janela depende do
+loopback do WASAPI e falha. Por que o Meet atravessa esse mesmo caminho na
+mesma máquina segue sem explicação — nenhuma diferença de pedido, origem,
+navegador, permissão ou estado do dispositivo reproduziu o sucesso dele.
+
+**A perna WebRTC está verificada.** Compartilhando uma aba, o áudio percorre a
+cadeia inteira — captura, `addTrack` das duas trilhas, negociação Opus em
+estéreo, transporte e reprodução — com bytes confirmados na coluna `áudio` do
+painel de diagnóstico. O que falha é a captura de áudio do sistema pelo
+Windows, antes de a aplicação receber qualquer coisa.
 
 O [Jitsi Meet chegou ao mesmo ponto](https://github.com/jitsi/jitsi-meet/issues/15418)
 e fechou a issue como *not planned*.
 
-> Não reabra essa investigação sem um dado novo. O caminho que funciona é o
-> dispositivo de entrada.
+Decisão registrada em
+[`DOCs/adr/001-audio-do-sistema.md`](DOCs/adr/001-audio-do-sistema.md), com a
+alternativa desktop (Tauri + WASAPI loopback) avaliada e adiada.
+
+> Não reabra essa investigação sem um dado novo.
 
 

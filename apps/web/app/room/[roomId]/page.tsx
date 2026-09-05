@@ -5,14 +5,11 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 
 import type { PeerId } from '@jusqs/types';
 
-import {
-  RoomClient,
-  type ConnectionStatus,
-  type PeerDiagnostics,
-} from '@/lib/room-client';
+import { RoomClient, type ConnectionStatus } from '@/lib/room-client';
 import { DEFAULT_QUALITY_ID, QUALITY_PRESETS } from '@/lib/quality';
 import {
   AUDIO_SOURCE_DISPLAY,
+  AUDIO_SOURCE_MICROPHONE,
   AUDIO_SOURCE_NONE,
   DEFAULT_AUDIO_SOURCE,
   deviceValue,
@@ -63,9 +60,7 @@ export default function RoomPage() {
   const [remoteStreams, setRemoteStreams] = useState<Map<PeerId, MediaStream>>(
     new Map(),
   );
-  const [errors, setErrors] = useState<string[]>([]);
   const [copied, setCopied] = useState(false);
-  const [diagnostics, setDiagnostics] = useState<PeerDiagnostics[]>([]);
 
   // Som começa desligado por peer: o autoplay só é autorizado com o elemento
   // mudo. Ligar exige um clique - que é justamente o gesto que o browser pede.
@@ -83,11 +78,16 @@ export default function RoomPage() {
     });
   }, []);
 
+  /**
+   * Erros vão para o console, não para a tela.
+   *
+   * A maior parte deles é técnica demais para o usuário — nomes de exceção do
+   * WebRTC, estados de ICE — e poluía a interface. O estado que interessa a
+   * quem usa continua visível nos painéis: "sem áudio", "aguardando alguém",
+   * "parado".
+   */
   const reportError = useCallback((message: string) => {
-    // Mantém só as últimas ocorrências: o painel é diagnóstico, não log.
-    setErrors((prev) =>
-      prev[prev.length - 1] === message ? prev : [...prev.slice(-4), message],
-    );
+    console.error('[jusqs]', message);
   }, []);
 
   /**
@@ -128,34 +128,22 @@ export default function RoomPage() {
     clientRef.current = client;
     client.connect();
 
+    // Em desenvolvimento, o cliente fica ao alcance do console:
+    //
+    //   await jusqs.getDiagnostics()
+    //
+    // A telemetria saiu da tela, mas continua disponível para quem estiver
+    // depurando — sem poluir a interface de quem só quer transmitir.
+    if (process.env.NODE_ENV === 'development') {
+      (window as unknown as { jusqs?: RoomClient }).jusqs = client;
+    }
+
     return () => {
       client.dispose();
       clientRef.current = null;
+      delete (window as unknown as { jusqs?: RoomClient }).jusqs;
     };
   }, [roomId, reportError]);
-
-  // Polling de 1s: getStats é assíncrono e barato, e é a única forma de ver
-  // se a mídia está de fato trafegando.
-  useEffect(() => {
-    if (peers.length === 0) {
-      setDiagnostics([]);
-      return;
-    }
-
-    let cancelled = false;
-    const tick = () => {
-      void clientRef.current?.getDiagnostics().then((rows) => {
-        if (!cancelled) setDiagnostics(rows);
-      });
-    };
-
-    tick();
-    const id = setInterval(tick, 1000);
-    return () => {
-      cancelled = true;
-      clearInterval(id);
-    };
-  }, [peers.length]);
 
   const copyLink = useCallback(() => {
     void navigator.clipboard.writeText(window.location.href).then(() => {
@@ -198,11 +186,11 @@ export default function RoomPage() {
             value={audioSource}
             aria-label="Fonte de áudio"
             title={
-              'da tela: o áudio vem junto da captura — funciona em aba e, ' +
-              'marcando a caixa, em tela inteira; nunca em janela isolada. ' +
-              'dispositivo: o áudio vem de uma entrada do sistema, como a ' +
-              'Mixagem Estéreo — é assim que se transmite o som de um jogo ' +
-              'compartilhando só a janela dele.'
+              'da aba: o áudio vem junto da captura. Funciona ao ' +
+              'compartilhar uma aba do navegador; em tela ou janela ' +
+              'depende do sistema e falha com frequência. ' +
+              'microfone: funciona com qualquer fonte, inclusive janela — ' +
+              'basta conceder a permissão.'
             }
             onChange={(event) => {
               const value = event.target.value;
@@ -219,7 +207,8 @@ export default function RoomPage() {
             }}
             className="cursor-pointer rounded-full border border-line bg-ink px-4 py-2.5 text-[13px] outline-none transition-colors hover:border-denim/60 focus:border-lilac/60"
           >
-            <option value={AUDIO_SOURCE_DISPLAY}>áudio: da tela</option>
+            <option value={AUDIO_SOURCE_DISPLAY}>áudio: da aba</option>
+            <option value={AUDIO_SOURCE_MICROPHONE}>áudio: microfone</option>
             <option value={AUDIO_SOURCE_NONE}>áudio: nenhum</option>
             {audioDevices.map((device) => (
               <option key={device.deviceId} value={deviceValue(device.deviceId)}>
@@ -333,126 +322,10 @@ export default function RoomPage() {
         )}
       </div>
 
-      {/* ----------------------------------------------------- diagnóstico */}
-      {diagnostics.length > 0 && <DiagnosticsTable rows={diagnostics} />}
-
-      {errors.length > 0 && (
-        <div className="rounded-card border border-alert/35 bg-alert/[0.06] p-5">
-          <div className="mb-2.5 text-[11px] font-medium tracking-[0.18em] text-alert uppercase">
-            Diagnóstico
-          </div>
-          <ul className="space-y-1.5 text-[13px] leading-relaxed text-sky/85">
-            {errors.map((message, index) => (
-              <li key={`${index}-${message}`} className="flex gap-2.5">
-                <span aria-hidden className="text-alert/70">
-                  ·
-                </span>
-                {message}
-              </li>
-            ))}
-          </ul>
-        </div>
-      )}
-
       <p className="max-w-2xl text-[12px] leading-relaxed text-denim/60">
         V0 sem TURN, sem persistência, sem reconexão. Se a conexão falhar
         entre redes diferentes, é o NAT: é exatamente esse problema que
         justifica o TURN na Phase 1.
-      </p>
-    </div>
-  );
-}
-
-/** Formata bytes em algo legível numa tabela estreita. */
-function formatBytes(bytes: number): string {
-  if (bytes < 1024) return `${bytes} B`;
-  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
-  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
-}
-
-function DiagnosticsTable({ rows }: { rows: PeerDiagnostics[] }) {
-  return (
-    <div className="rounded-card border border-line bg-surface/70 p-5 sm:p-6">
-      <div className="mb-4 flex items-baseline justify-between gap-4">
-        <h2 className="text-[11px] font-medium tracking-[0.18em] text-denim/70 uppercase">
-          WebRTC
-        </h2>
-        <span className="text-[12px] text-denim/50">atualiza a cada 1s</span>
-      </div>
-
-      <div className="-mx-1 overflow-x-auto px-1">
-        <table className="w-full border-collapse text-left text-[13px] whitespace-nowrap">
-          <thead>
-            <tr className="text-[11px] font-medium text-denim/60">
-              <th className="pr-6 pb-3 font-medium">peer</th>
-              <th className="pr-6 pb-3 font-medium">conexão</th>
-              <th className="pr-6 pb-3 font-medium">ice</th>
-              <th className="pr-6 pb-3 font-medium">par</th>
-              <th className="pr-6 pb-3 font-medium">cand ↑/↓</th>
-              <th className="pr-6 pb-3 font-medium">recebido</th>
-              <th className="pr-6 pb-3 font-medium">frames</th>
-              <th className="pb-3 font-medium">enviado</th>
-            </tr>
-          </thead>
-          <tbody className="font-mono">
-            {rows.map((row) => {
-              const connected = row.connectionState === 'connected';
-              const receiving = row.inboundBytes > 0;
-
-              return (
-                <tr key={row.peerId} className="border-t border-line/70">
-                  <td className="py-3 pr-6">{row.peerId.slice(0, 8)}</td>
-                  <td className="py-3 pr-6">
-                    <span
-                      className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-[12px] ${
-                        connected
-                          ? 'bg-lilac/15 text-lilac-soft'
-                          : 'bg-denim/10 text-denim'
-                      }`}
-                    >
-                      <span
-                        aria-hidden
-                        className={`size-1.5 rounded-full ${
-                          connected ? 'bg-lilac-soft' : 'bg-denim/60'
-                        }`}
-                      />
-                      {row.connectionState}
-                    </span>
-                  </td>
-                  <td className="py-3 pr-6 text-denim">
-                    {row.iceConnectionState}
-                  </td>
-                  <td className="py-3 pr-6 text-denim">
-                    {row.selectedPair ?? '—'}
-                  </td>
-                  <td className="py-3 pr-6 text-denim">
-                    {row.sentCandidates}/{row.receivedCandidates}
-                    {row.pendingIce > 0 && ` (+${row.pendingIce})`}
-                  </td>
-                  <td
-                    className={`py-3 pr-6 ${receiving ? 'text-sky' : 'text-alert'}`}
-                  >
-                    {formatBytes(row.inboundBytes)}
-                  </td>
-                  <td className="py-3 pr-6 text-denim">
-                    {row.framesDecoded}
-                    {row.resolution && ` · ${row.resolution}`}
-                  </td>
-                  <td className="py-3 text-denim">
-                    {formatBytes(row.outboundBytes)}
-                  </td>
-                </tr>
-              );
-            })}
-          </tbody>
-        </table>
-      </div>
-
-      <p className="mt-4 max-w-2xl text-[12px] leading-relaxed text-denim/60">
-        <span className="text-sky/80">recebido</span> crescendo com a tela preta
-        indica problema de renderização. Em zero, a mídia não está chegando —
-        olhe <span className="text-sky/80">conexão</span> e{' '}
-        <span className="text-sky/80">par</span>.
       </p>
     </div>
   );

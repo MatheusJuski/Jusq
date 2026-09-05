@@ -6,13 +6,28 @@
  * é desacoplar: o vídeo continua vindo da captura de tela, e o áudio pode vir
  * de um dispositivo de **entrada** capturado com `getUserMedia`.
  *
- * No Windows, o "Mixagem Estéreo" (Stereo Mix) ou um cabo virtual (VB-CABLE,
- * VoiceMeeter) aparecem como entrada e carregam o som do sistema. É assim que
- * se transmite o áudio de um jogo que roda fora do navegador.
+ * São mecanismos distintos, e vale não confundi-los:
+ *
+ * - **áudio da superfície** — o que `getDisplayMedia` associa à tela, janela ou
+ *   aba compartilhada, negociado por `systemAudio` e `windowAudio`
+ * - **dispositivo de entrada** — "Mixagem Estéreo" ou um cabo virtual, que o
+ *   Windows expõe como entrada capturando o que sai pelo dispositivo de saída
+ *
+ * O segundo não substitui o primeiro conceitualmente; ele apenas oferece um
+ * caminho alternativo quando o primeiro não está disponível.
  */
 
 export const AUDIO_SOURCE_DISPLAY = 'display';
 export const AUDIO_SOURCE_NONE = 'none';
+
+/**
+ * Microfone padrão do sistema.
+ *
+ * Opção de primeira classe, e não mais um item da lista de dispositivos: é o
+ * único caminho de áudio que funciona em qualquer fonte — inclusive janela —
+ * sem o usuário configurar nada. Um clique de permissão e pronto.
+ */
+export const AUDIO_SOURCE_MICROPHONE = 'microphone';
 
 /** Prefixo que distingue um deviceId das opções fixas dentro do `<select>`. */
 const DEVICE_PREFIX = 'device:';
@@ -44,6 +59,15 @@ export const DEVICE_AUDIO_CONSTRAINTS = {
   noiseSuppression: false,
   autoGainControl: false,
 } as const;
+
+/**
+ * Restrições do microfone.
+ *
+ * Aqui o processamento é bem-vindo, ao contrário do áudio de sistema: a
+ * finalidade é voz, e supressão de ruído e ganho automático existem
+ * exatamente para isso. Deixar o padrão do navegador é a escolha certa.
+ */
+export const MICROPHONE_CONSTRAINTS = true;
 
 /**
  * Lista os dispositivos de entrada de áudio disponíveis.

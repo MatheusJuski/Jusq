@@ -9,9 +9,11 @@ import type {
 
 import { getIceServers, getSignalingUrl } from './ice';
 import {
+  AUDIO_SOURCE_MICROPHONE,
   AUDIO_SOURCE_NONE,
   DEFAULT_AUDIO_SOURCE,
   DEVICE_AUDIO_CONSTRAINTS,
+  MICROPHONE_CONSTRAINTS,
   deviceIdOf,
 } from './audio-source';
 import {
@@ -45,8 +47,22 @@ export interface RoomClientHandlers {
  * lib de tipos do DOM. Declarado aqui em vez de um `as any` no ponto de uso:
  * assim o campo continua sendo conferido pelo compilador.
  */
-interface DisplayMediaOptions extends DisplayMediaStreamOptions {
+interface DisplayMediaOptions extends Omit<DisplayMediaStreamOptions, 'audio'> {
+  /**
+   * `suppressLocalAudioPlayback` também está fora da lib de tipos, então o
+   * campo de áudio precisa ser redeclarado em vez de herdado.
+   */
+  audio?: boolean | (MediaTrackConstraints & { suppressLocalAudioPlayback?: boolean });
+  /** Oferece o áudio do sistema ao compartilhar uma tela. */
   systemAudio?: 'include' | 'exclude';
+  /** Oferece o áudio do sistema ao compartilhar uma janela. */
+  windowAudio?: 'system' | 'window' | 'exclude';
+  /** Mantém a opção de tela inteira no seletor. */
+  monitorTypeSurfaces?: 'include' | 'exclude';
+  /** Impede escolher a própria aba, que geraria espelho infinito. */
+  selfBrowserSurface?: 'include' | 'exclude';
+  /** Permite trocar a fonte sem reiniciar a captura. */
+  surfaceSwitching?: 'include' | 'exclude';
 }
 
 /**
@@ -116,6 +132,24 @@ export interface PeerDiagnostics {
   resolution: string | null;
   outboundBytes: number;
   framesSent: number;
+  /**
+   * Bytes de áudio **enviados**.
+   *
+   * Sem isto, quem transmite não tem como saber se o próprio áudio está
+   * saindo — só quem recebe conseguia verificar. Fecha o outro lado da
+   * cadeia.
+   */
+  outboundAudioBytes: number;
+  /**
+   * Bytes de áudio recebidos.
+   *
+   * Separado do vídeo porque as duas trilhas falham por motivos diferentes:
+   * vídeo chegando com áudio em zero significa que a captura saiu sem som, e
+   * não que a conexão está ruim. Sem esta coluna, a única forma de saber era
+   * pedir para alguém do outro lado escutar.
+   */
+  inboundAudioBytes: number;
+  hasRemoteAudio: boolean;
 }
 
 /**
@@ -317,6 +351,12 @@ export class RoomClient {
     // áudio pela captura de tela.
     if (deviceId) return this.#captureWithDeviceAudio(deviceId);
 
+    // Microfone: funciona com qualquer fonte de vídeo, inclusive janela, e
+    // sem o usuário configurar nada além de conceder a permissão.
+    if (this.#audioSource === AUDIO_SOURCE_MICROPHONE) {
+      return this.#captureWithDeviceAudio(null);
+    }
+
     if (this.#audioSource === AUDIO_SOURCE_NONE) {
       return this.#captureVideoOnly();
     }
@@ -354,13 +394,15 @@ export class RoomClient {
    * nunca teria áudio próprio, e o som vem do dispositivo escolhido. Falhar no
    * áudio aqui degrada para vídeo — nunca cancela a transmissão.
    */
-  async #captureWithDeviceAudio(deviceId: string): Promise<MediaStream | null> {
+  async #captureWithDeviceAudio(deviceId: string | null): Promise<MediaStream | null> {
     const video = await this.#captureVideoOnly();
     if (!video) return null;
 
     try {
       const audio = await navigator.mediaDevices.getUserMedia({
-        audio: { deviceId: { exact: deviceId }, ...DEVICE_AUDIO_CONSTRAINTS },
+        audio: deviceId
+          ? { deviceId: { exact: deviceId }, ...DEVICE_AUDIO_CONSTRAINTS }
+          : MICROPHONE_CONSTRAINTS,
       });
 
       // Um stream só, para que `stopSharing` encerre tudo de uma vez.
@@ -370,8 +412,8 @@ export class RoomClient {
       ]);
     } catch (error) {
       this.#handlers.onError(
-        'o dispositivo de áudio escolhido não abriu — transmitindo só o ' +
-          `vídeo (${RoomClient.#describe(error)}).`,
+        `${deviceId ? 'o dispositivo de áudio escolhido' : 'o microfone'} não ` +
+          `abriu — transmitindo só o vídeo (${RoomClient.#describe(error)}).`,
       );
       return video;
     }
@@ -389,10 +431,20 @@ export class RoomClient {
     // compartilhar a tela inteira. O padrão hoje é 'include', mas a própria
     // documentação do Chrome pede que seja declarado — depender de um padrão
     // que avisam que vai mudar é só adiar a quebra.
+    // Todas as dicas que a especificação oferece.
+    //
+    // Nenhuma delas **obriga** o navegador a entregar uma trilha de áudio — são
+    // hints sobre o que oferecer no seletor. Medimos que não alteram o
+    // resultado nesta máquina (ver ADR-001), mas omiti-las seria pedir menos do
+    // que a plataforma permite, e o comportamento varia entre sistemas.
     const options: DisplayMediaOptions = {
       video: true,
-      audio: true,
+      audio: { suppressLocalAudioPlayback: false },
       systemAudio: 'include',
+      windowAudio: 'system',
+      monitorTypeSurfaces: 'include',
+      selfBrowserSurface: 'exclude',
+      surfaceSwitching: 'include',
     };
 
     try {
@@ -759,6 +811,9 @@ export class RoomClient {
         resolution: null,
         outboundBytes: 0,
         framesSent: 0,
+        outboundAudioBytes: 0,
+        inboundAudioBytes: 0,
+        hasRemoteAudio: false,
       };
 
       try {
@@ -784,6 +839,13 @@ export class RoomClient {
             }
             case 'inbound-rtp': {
               const r = report as RTCInboundRtpStreamStats;
+
+              if (r.kind === 'audio') {
+                entry.hasRemoteAudio = true;
+                entry.inboundAudioBytes = r.bytesReceived ?? 0;
+                return;
+              }
+
               if (r.kind !== 'video') return;
               entry.inboundBytes = r.bytesReceived ?? 0;
               entry.framesDecoded = r.framesDecoded ?? 0;
@@ -794,6 +856,12 @@ export class RoomClient {
             }
             case 'outbound-rtp': {
               const r = report as RTCOutboundRtpStreamStats;
+
+              if (r.kind === 'audio') {
+                entry.outboundAudioBytes = r.bytesSent ?? 0;
+                return;
+              }
+
               if (r.kind !== 'video') return;
               entry.outboundBytes = r.bytesSent ?? 0;
               entry.framesSent = r.framesSent ?? 0;

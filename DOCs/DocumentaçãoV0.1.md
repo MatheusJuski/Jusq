@@ -1373,6 +1373,14 @@ Decisões importantes devem ser documentadas.
 
 Exemplo:
 
+### Registrados
+
+* [`adr/001-audio-do-sistema.md`](./adr/001-audio-do-sistema.md) — por que a
+  captura de áudio do sistema fica fora do escopo web, e quando o caminho
+  desktop passa a valer
+
+### Formato
+
 ```text
 ADR-001
 
