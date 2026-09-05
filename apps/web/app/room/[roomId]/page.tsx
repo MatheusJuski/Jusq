@@ -287,7 +287,7 @@ export default function RoomPage() {
       )}
 
       <p className="max-w-2xl text-[12px] leading-relaxed text-denim/60">
-        V0 — sem TURN, sem persistência, sem reconexão. Se a conexão falhar
+        V0 sem TURN, sem persistência, sem reconexão. Se a conexão falhar
         entre redes diferentes, é o NAT: é exatamente esse problema que
         justifica o TURN na Phase 1.
       </p>
