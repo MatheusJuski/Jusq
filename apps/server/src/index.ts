@@ -1,4 +1,5 @@
 import { randomUUID } from 'node:crypto';
+import { createRequire } from 'node:module';
 
 import cors from '@fastify/cors';
 import websocket from '@fastify/websocket';
@@ -16,13 +17,33 @@ const CORS_ORIGIN = (process.env['CORS_ORIGIN'] ?? 'http://localhost:3000')
   .map((o) => o.trim())
   .filter(Boolean);
 
+/**
+ * Configuração do transport de log.
+ *
+ * `pino-pretty` é devDependency e **não existe** no bundle de produção. Pedir
+ * o transport sem que o módulo esteja instalável derruba o Fastify no boot
+ * (`unable to determine transport target`), antes de qualquer log útil.
+ *
+ * Por isso a decisão é por disponibilidade, não só por `NODE_ENV`: o Render
+ * não define `NODE_ENV` em serviços Docker, e um deploy não deveria depender
+ * de alguém lembrar de configurar uma variável para o processo subir.
+ */
+function logTransport(): { target: string; options: object } | undefined {
+  if (process.env['NODE_ENV'] === 'production') return undefined;
+
+  try {
+    createRequire(import.meta.url).resolve('pino-pretty');
+    return { target: 'pino-pretty', options: { translateTime: 'HH:MM:ss' } };
+  } catch {
+    // Rodando a partir do bundle, sem node_modules: JSON puro serve.
+    return undefined;
+  }
+}
+
 const app = Fastify({
   logger: {
     level: process.env['LOG_LEVEL'] ?? 'info',
-    transport:
-      process.env['NODE_ENV'] === 'production'
-        ? undefined
-        : { target: 'pino-pretty', options: { translateTime: 'HH:MM:ss' } },
+    transport: logTransport(),
   },
 });
 

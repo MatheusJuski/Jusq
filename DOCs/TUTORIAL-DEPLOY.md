@@ -142,12 +142,34 @@ Três detalhes que importam:
 * O Start Command padrão sugerido pelo Render (`yarn start`) **não serve** —
   este projeto usa pnpm e o entrypoint está em `apps/server/dist/`.
 
-### 2.2.1 A porta
+### 2.3 Porta e variáveis de ambiente
 
-O código lê a porta de `PORT`, que o Render injeta automaticamente. Não
-configure nada — e não fixe uma porta.
+Aqui há uma armadilha: **o Render não injeta `PORT` automaticamente.** Ele
+espera que o serviço escute na porta **10000** por padrão. O código usa `3001`
+como padrão local, então sem configurar nada a plataforma não encontra o
+processo.
 
-### 2.3 Deploy
+Em **Environment Variables**, adicione:
+
+| Name | Value | Quando |
+| ---- | ----- | ------ |
+| `PORT` | `10000` | **sempre** |
+| `CORS_ORIGIN` | `https://<seu-app>.vercel.app` | só na Parte 4 |
+
+Sobre `NODE_ENV`: **não precisa configurar**.
+
+* Na Opção A (Docker), o próprio Dockerfile define `NODE_ENV=production` — o
+  Render *não* define isso para serviços Docker.
+* Na Opção B (Node), o Render define automaticamente.
+* E o servidor sobe corretamente mesmo sem a variável: ele decide o formato de
+  log por disponibilidade do `pino-pretty`, não por `NODE_ENV`.
+
+> Esse último ponto existe porque a versão anterior **quebrava no boot** sem
+> `NODE_ENV=production` — o `pino-pretty` é devDependency e não está no bundle,
+> e o Fastify morria com `unable to determine transport target`. Um deploy não
+> deve depender de alguém lembrar de uma variável para o processo subir.
+
+### 2.4 Deploy
 
 Clique em **Create Web Service** e espere (3 a 6 minutos na primeira vez).
 
@@ -159,7 +181,7 @@ https://jusqs-server.onrender.com
 
 **Anote — você vai precisar dela na Parte 3.**
 
-### 2.4 Verificar
+### 2.5 Verificar
 
 ```bash
 curl https://jusqs-server.onrender.com/health
@@ -291,6 +313,11 @@ ignorado **em silêncio** — passa local e quebra em container limpo.
 
 O **Docker Build Context Directory** não está como `.`. O contexto tem que ser
 a raiz do repo, não `apps/server`.
+
+### Render builda mas o serviço nunca fica "Live"
+
+Faltou `PORT=10000` nas variáveis de ambiente. O Render procura o processo na
+porta 10000; o padrão do código é 3001, e ele não encontra nada.
 
 ### Vercel: `Module not found: @jusqs/types`
 

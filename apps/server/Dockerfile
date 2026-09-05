@@ -39,7 +39,9 @@ USER node
 
 COPY --from=builder --chown=node:node /repo/apps/server/dist/index.js ./index.js
 
-# A plataforma injeta PORT (Render, Cloud Run, etc.); 3001 é so o padrao local.
+# ATENCAO: o Render NAO injeta PORT automaticamente e espera a porta 10000 por
+# padrao. Defina PORT=10000 nas variaveis de ambiente do servico, ou a
+# plataforma nao encontra o processo. 3001 e apenas o padrao local.
 ENV PORT=3001
 EXPOSE 3001
 
