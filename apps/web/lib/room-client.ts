@@ -174,29 +174,43 @@ export class RoomClient {
 
     let stream: MediaStream;
     try {
+      // Pedido no formato mais simples possível, de propósito.
+      //
+      // `getDisplayMedia` rejeita o pedido INTEIRO ao encontrar uma restrição
+      // que não suporta, e o conjunto suportado varia entre browsers — pedir
+      // resolução, fps e processamento de áudio aqui é apostar que todos
+      // aceitam tudo. O perfil é aplicado logo abaixo com `applyConstraints`,
+      // onde cada ajuste falha isolado sem derrubar a captura.
+      //
+      // Pedir áudio não garante recebê-lo: o browser só entrega se o usuário
+      // marcar a opção no seletor, e ela não existe ao compartilhar uma janela
+      // isolada — apenas aba ou tela inteira.
       stream = await navigator.mediaDevices.getDisplayMedia({
-        video: videoConstraints(this.#quality),
-        // Pedir áudio não garante recebê-lo: o browser só entrega se o usuário
-        // marcar a opção no seletor, e ela não existe ao compartilhar uma
-        // janela isolada — apenas aba ou tela inteira.
-        audio: AUDIO_CONSTRAINTS,
+        video: true,
+        audio: true,
       });
     } catch (error) {
-      // Cancelar o seletor de tela do browser cai aqui. Não é erro.
+      // Fechar o seletor de tela do browser cai aqui. Não é erro.
       if (error instanceof DOMException && error.name === 'NotAllowedError') return;
-      this.#handlers.onError('não foi possível capturar a tela');
+
+      // O nome da exceção é a única pista útil sobre o que a plataforma
+      // recusou. Escondê-lo transforma um diagnóstico em adivinhação.
+      const detail =
+        error instanceof DOMException
+          ? `${error.name}: ${error.message}`
+          : String(error);
+      this.#handlers.onError(`não foi possível capturar a tela — ${detail}`);
       return;
     }
+
+    await this.#applyCaptureProfile(stream);
 
     this.#localStream = stream;
     this.#handlers.onLocalStream(stream);
 
     // O usuário pode parar pelo botão nativo do browser, fora da nossa UI.
     const [track] = stream.getVideoTracks();
-    if (track) {
-      track.contentHint = this.#quality.contentHint;
-      track.addEventListener('ended', () => this.stopSharing());
-    }
+    track?.addEventListener('ended', () => this.stopSharing());
 
     // Oferta para todos os peers já conhecidos, cada uma na fila do seu peer.
     for (const [peerId, state] of this.#peers) {
@@ -240,26 +254,48 @@ export class RoomClient {
    * Sem transmissão, vale a partir da próxima captura.
    */
   async setQuality(id: string): Promise<void> {
-    const preset = findPreset(id);
-    this.#quality = preset;
+    this.#quality = findPreset(id);
 
     const stream = this.#localStream;
     if (!stream) return;
 
-    const [track] = stream.getVideoTracks();
-    if (track) {
-      track.contentHint = preset.contentHint;
+    await this.#applyCaptureProfile(stream);
+
+    for (const state of this.#peers.values()) {
+      await this.#applySenderLimits(state.pc);
+    }
+  }
+
+  /**
+   * Aplica o perfil de qualidade sobre um stream já capturado.
+   *
+   * Cada ajuste é tentado em separado: uma fonte que não aceita 1080p60 ainda
+   * transmite na resolução que conseguir, e um áudio que não deixa desligar o
+   * processamento ainda toca. Nada aqui deve impedir a transmissão de existir.
+   */
+  async #applyCaptureProfile(stream: MediaStream): Promise<void> {
+    const preset = this.#quality;
+
+    const [video] = stream.getVideoTracks();
+    if (video) {
+      video.contentHint = preset.contentHint;
       try {
-        await track.applyConstraints(videoConstraints(preset));
+        await video.applyConstraints(videoConstraints(preset));
       } catch {
         this.#handlers.onError(
-          `a fonte não aceitou ${preset.label} — mantendo o que estava`,
+          `a fonte não aceitou ${preset.label} — transmitindo no que ela permite`,
         );
       }
     }
 
-    for (const state of this.#peers.values()) {
-      await this.#applySenderLimits(state.pc);
+    const [audio] = stream.getAudioTracks();
+    if (audio) {
+      try {
+        await audio.applyConstraints(AUDIO_CONSTRAINTS);
+      } catch {
+        // Só significa que o processamento de voz continua ligado: o áudio
+        // sai pior, mas sai. Avisar aqui seria ruído.
+      }
     }
   }
 
