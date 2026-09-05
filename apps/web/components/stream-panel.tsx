@@ -111,10 +111,10 @@ function ControlButton({
       type="button"
       onClick={onClick}
       title={title}
-      className={`cursor-pointer border px-2 py-0.5 tracking-widest transition-colors ${
+      className={`cursor-pointer rounded-full border px-2.5 py-1 text-[11px] font-medium transition-colors ${
         active
-          ? 'border-lab-accent text-lab-accent'
-          : 'border-lab-border text-lab-dim hover:border-lab-dim'
+          ? 'border-lilac/70 bg-lilac/15 text-lilac-soft'
+          : 'border-line text-denim hover:border-denim/60 hover:text-sky'
       }`}
     >
       {children}
@@ -140,13 +140,28 @@ export function VideoPanel({
   children?: React.ReactNode;
 }) {
   return (
-    <div ref={panelRef} className="border border-lab-border bg-lab-panel">
-      <div className="flex items-center justify-between gap-3 border-b border-lab-border px-3 py-1.5 text-[11px] tracking-widest">
-        <span className="shrink-0">{label}</span>
+    <div
+      ref={panelRef}
+      className="overflow-hidden rounded-card border border-line bg-surface/70"
+    >
+      <div className="flex items-center justify-between gap-3 px-4 py-2.5">
+        <span className="shrink-0 font-mono text-[12px] text-denim">
+          {label}
+        </span>
         <div className="flex items-center gap-2">
           {action}
-          <span className={active ? 'text-lab-accent' : 'text-lab-dim'}>
-            {active ? '● LIVE' : '○ OFF'}
+          <span
+            className={`flex items-center gap-1.5 text-[11px] font-medium ${
+              active ? 'text-lilac-soft' : 'text-denim/60'
+            }`}
+          >
+            <span
+              aria-hidden
+              className={`size-1.5 rounded-full ${
+                active ? 'bg-lilac-soft' : 'bg-denim/50'
+              }`}
+            />
+            {active ? 'ao vivo' : 'parado'}
           </span>
         </div>
       </div>
@@ -159,11 +174,11 @@ export function VideoPanel({
           quando o painel está em tela cheia. */}
       <div
         data-panel-body
-        className="relative flex aspect-video items-center justify-center bg-black"
+        className="relative flex aspect-video items-center justify-center bg-ink"
       >
         {children}
         {!active && (
-          <span className="absolute px-4 text-center text-xs text-lab-dim">
+          <span className="absolute px-6 text-center text-[13px] text-denim/60">
             {emptyHint}
           </span>
         )}
@@ -269,10 +284,10 @@ export function RemoteStreamPanel({
               active={audioOn}
               title={audioOn ? 'Silenciar' : 'Ativar som'}
             >
-              {audioOn ? '♪ SOM' : '✕ MUDO'}
+              {audioOn ? 'som' : 'mudo'}
             </ControlButton>
           ) : (
-            <span className="text-lab-dim">SEM ÁUDIO</span>
+            <span className="text-[11px] text-denim/60">sem áudio</span>
           )}
 
           {pip.supported && (
@@ -281,7 +296,7 @@ export function RemoteStreamPanel({
               active={pip.active}
               title="Miniplayer flutuante (fica por cima de outras janelas)"
             >
-              ⧉ MINI
+              mini
             </ControlButton>
           )}
 
@@ -291,7 +306,7 @@ export function RemoteStreamPanel({
               active={fullscreen.active}
               title={fullscreen.active ? 'Sair da tela cheia' : 'Tela cheia'}
             >
-              ⛶ {fullscreen.active ? 'SAIR' : 'TELA'}
+              {fullscreen.active ? 'sair' : 'tela cheia'}
             </ControlButton>
           )}
         </>

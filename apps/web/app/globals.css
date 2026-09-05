@@ -1,24 +1,65 @@
 @import 'tailwindcss';
 
 @theme {
-  --color-lab-bg: #0a0c10;
-  --color-lab-panel: #11151c;
-  --color-lab-border: #1e2530;
-  --color-lab-text: #c9d4e3;
-  --color-lab-dim: #64748b;
-  --color-lab-accent: #4ade80;
-  --color-lab-warn: #fbbf24;
-  --color-lab-error: #f87171;
+  /* ---------------------------------------------------------------- cores
+     Base da paleta: Pale Sky, Dusty Denim, Deep Lilac, Midnight Violet e
+     Shadow Grey. As variações (`ink`, `raise`, `lilac-soft`, `alert`) são
+     derivadas dessas cinco — a paleta não traz tom de fundo mais profundo que
+     Shadow Grey nem um tom de alerta, e ambos são necessários. */
 
-  --font-mono: ui-monospace, 'Cascadia Code', 'JetBrains Mono', Consolas, monospace;
+  --color-ink: #1a1918; /* Shadow Grey escurecido: fundo da página */
+  --color-surface: #262423; /* Shadow Grey */
+  --color-raise: #302d2c; /* superfície elevada */
+  --color-line: #383433; /* divisórias */
+
+  --color-violet: #402b47; /* Midnight Violet */
+  --color-lilac: #8350c4; /* Deep Lilac */
+  --color-lilac-soft: #a77fe0; /* Deep Lilac clareado: legível sobre escuro */
+  --color-denim: #7392b5; /* Dusty Denim */
+  --color-sky: #c9e0eb; /* Pale Sky */
+
+  /* Deep Lilac girado no matiz até o magenta: alerta que não briga com a
+     paleta. Vermelho puro destoaria de tudo. */
+  --color-alert: #c4507e;
+
+  /* ------------------------------------------------------------ tipografia
+     Poppins para interface. Mono só para telemetria — número em coluna precisa
+     de largura fixa para o olho comparar linha a linha. */
+  --font-sans: var(--font-poppins), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: ui-monospace, 'Cascadia Code', 'JetBrains Mono', Consolas,
+    monospace;
+
+  /* ------------------------------------------------------------------ raio */
+  --radius-card: 20px;
+  --radius-control: 12px;
 }
 
 html,
 body {
-  background: var(--color-lab-bg);
-  color: var(--color-lab-text);
-  font-family: var(--font-mono);
+  background: var(--color-ink);
+  color: var(--color-sky);
+  font-family: var(--font-sans);
   min-height: 100vh;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Um único brilho, fixo num canto e bem discreto. O gradiente colorido
+   espalhado pela tela é justamente o que datou esse tipo de interface. */
+body::before {
+  content: '';
+  position: fixed;
+  top: -30vh;
+  right: -20vw;
+  width: 70vw;
+  height: 70vh;
+  pointer-events: none;
+  z-index: 0;
+  background: radial-gradient(
+    circle,
+    color-mix(in oklab, var(--color-lilac) 22%, transparent),
+    transparent 62%
+  );
+  filter: blur(60px);
 }
 
 /* Em tela cheia o painel precisa ocupar tudo. Sem isto o corpo mantém o 16:9
@@ -27,25 +68,24 @@ body {
 :fullscreen {
   display: flex;
   flex-direction: column;
-  background: var(--color-lab-bg);
+  background: var(--color-ink);
+  border-radius: 0;
 }
 
 :fullscreen [data-panel-body] {
   aspect-ratio: auto;
   flex: 1;
   min-height: 0;
+  border-radius: 0;
 }
 
-/* Grade sutil de fundo - referência visual de "instrumento", não de SaaS. */
-body::before {
-  content: '';
-  position: fixed;
-  inset: 0;
-  pointer-events: none;
-  z-index: 0;
-  background-image:
-    linear-gradient(var(--color-lab-border) 1px, transparent 1px),
-    linear-gradient(90deg, var(--color-lab-border) 1px, transparent 1px);
-  background-size: 48px 48px;
-  opacity: 0.25;
+/* O select nativo herda o tema claro do sistema e destoa do resto. */
+select option {
+  background: var(--color-surface);
+  color: var(--color-sky);
+}
+
+::selection {
+  background: color-mix(in oklab, var(--color-lilac) 45%, transparent);
+  color: var(--color-sky);
 }

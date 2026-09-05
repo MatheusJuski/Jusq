@@ -18,19 +18,27 @@ import {
 } from '@/components/stream-panel';
 
 const STATUS_LABEL: Record<ConnectionStatus, string> = {
-  idle: 'AGUARDANDO',
-  connecting: 'CONECTANDO',
-  connected: 'ONLINE',
-  closed: 'DESCONECTADO',
-  error: 'ERRO',
+  idle: 'aguardando',
+  connecting: 'conectando',
+  connected: 'online',
+  closed: 'desconectado',
+  error: 'erro',
 };
 
 const STATUS_COLOR: Record<ConnectionStatus, string> = {
-  idle: 'text-lab-dim',
-  connecting: 'text-lab-warn',
-  connected: 'text-lab-accent',
-  closed: 'text-lab-dim',
-  error: 'text-lab-error',
+  idle: 'text-denim/60',
+  connecting: 'text-denim',
+  connected: 'text-lilac-soft',
+  closed: 'text-denim/60',
+  error: 'text-alert',
+};
+
+const STATUS_DOT: Record<ConnectionStatus, string> = {
+  idle: 'bg-denim/50',
+  connecting: 'bg-denim animate-pulse',
+  connected: 'bg-lilac-soft',
+  closed: 'bg-denim/50',
+  error: 'bg-alert',
 };
 
 export default function RoomPage() {
@@ -132,46 +140,56 @@ export default function RoomPage() {
   const remoteEntries = [...remoteStreams.entries()];
 
   return (
-    <div className="mx-auto flex max-w-6xl flex-col gap-6 px-6 py-8">
+    <div className="mx-auto flex w-full max-w-6xl flex-col gap-5 px-6 pb-16 sm:px-10">
       {/* ---------------------------------------------------------- barra */}
-      <div className="flex flex-wrap items-center justify-between gap-4 border border-lab-border bg-lab-panel px-5 py-3">
-        <div className="flex items-center gap-6 text-xs tracking-widest">
-          <span>
-            <span className="text-lab-dim">SALA </span>
-            <span className="font-bold">{roomId}</span>
+      <div className="flex flex-wrap items-center justify-between gap-x-6 gap-y-4 rounded-card border border-line bg-surface/70 px-5 py-4">
+        <div className="flex items-center gap-5 text-[13px]">
+          <span className="flex items-baseline gap-2">
+            <span className="text-denim/70">sala</span>
+            <span className="font-mono font-medium">{roomId}</span>
           </span>
-          <span className={STATUS_COLOR[status]}>● {STATUS_LABEL[status]}</span>
-          <span className="text-lab-dim">PEERS {peers.length}</span>
+
+          <span className="h-4 w-px bg-line" />
+
+          <span className={`flex items-center gap-2 ${STATUS_COLOR[status]}`}>
+            <span
+              aria-hidden
+              className={`size-1.5 rounded-full ${STATUS_DOT[status]}`}
+            />
+            {STATUS_LABEL[status]}
+          </span>
+
+          <span className="text-denim/70">
+            {peers.length} {peers.length === 1 ? 'peer' : 'peers'}
+          </span>
         </div>
 
         <div className="flex flex-wrap items-center gap-2">
-          <label className="flex items-center gap-2 text-xs tracking-widest text-lab-dim">
-            QUALIDADE
-            <select
-              value={quality}
-              onChange={(event) => {
-                const id = event.target.value;
-                setQuality(id);
-                // Aplica ao vivo se já estiver transmitindo; caso contrário
-                // vale a partir da próxima captura.
-                void clientRef.current?.setQuality(id);
-              }}
-              className="cursor-pointer border border-lab-border bg-lab-bg px-2 py-2 text-xs text-lab-text outline-none focus:border-lab-dim"
-            >
-              {QUALITY_PRESETS.map((preset) => (
-                <option key={preset.id} value={preset.id}>
-                  {preset.label}
-                </option>
-              ))}
-            </select>
-          </label>
+          <select
+            value={quality}
+            aria-label="Qualidade da transmissão"
+            onChange={(event) => {
+              const id = event.target.value;
+              setQuality(id);
+              // Aplica ao vivo se já estiver transmitindo; caso contrário
+              // vale a partir da próxima captura.
+              void clientRef.current?.setQuality(id);
+            }}
+            className="cursor-pointer rounded-full border border-line bg-ink px-4 py-2.5 text-[13px] outline-none transition-colors hover:border-denim/60 focus:border-lilac/60"
+          >
+            {QUALITY_PRESETS.map((preset) => (
+              <option key={preset.id} value={preset.id}>
+                {preset.label}
+              </option>
+            ))}
+          </select>
 
           <button
             type="button"
             onClick={copyLink}
-            className="cursor-pointer border border-lab-border px-4 py-2 text-xs tracking-wider transition-colors hover:border-lab-dim"
+            className="cursor-pointer rounded-full border border-line px-4 py-2.5 text-[13px] font-medium transition-colors hover:border-denim/60"
           >
-            {copied ? 'COPIADO' : 'COPIAR LINK'}
+            {copied ? 'link copiado' : 'copiar link'}
           </button>
 
           <button
@@ -183,13 +201,13 @@ export default function RoomPage() {
               if (client.isSharing) client.stopSharing();
               else void client.startSharing();
             }}
-            className={`cursor-pointer border px-4 py-2 text-xs font-bold tracking-wider transition-colors disabled:cursor-not-allowed disabled:opacity-40 ${
+            className={`cursor-pointer rounded-full px-5 py-2.5 text-[13px] font-semibold transition-colors disabled:cursor-not-allowed disabled:opacity-35 ${
               isSharing
-                ? 'border-lab-error text-lab-error hover:bg-lab-error hover:text-lab-bg'
-                : 'border-lab-accent text-lab-accent hover:bg-lab-accent hover:text-lab-bg'
+                ? 'border border-line text-sky hover:border-alert/70 hover:text-alert'
+                : 'bg-lilac text-white hover:bg-lilac-soft'
             }`}
           >
-            {isSharing ? 'PARAR' : 'COMPARTILHAR TELA'}
+            {isSharing ? 'parar transmissão' : 'compartilhar tela'}
           </button>
         </div>
       </div>
@@ -197,13 +215,15 @@ export default function RoomPage() {
       {/* --------------------------------------------------------- vídeos */}
       <div className="grid gap-4 lg:grid-cols-2">
         <VideoPanel
-          label="VOCÊ"
+          label="você"
           active={isSharing}
-          emptyHint="clique em COMPARTILHAR TELA"
+          emptyHint="clique em compartilhar tela para começar"
           action={
             isSharing ? (
-              <span className={sendingAudio ? 'text-lab-accent' : 'text-lab-dim'}>
-                {sendingAudio ? '♪ ENVIANDO ÁUDIO' : 'SEM ÁUDIO'}
+              <span
+                className={`text-[11px] ${sendingAudio ? 'text-lilac-soft' : 'text-denim/60'}`}
+              >
+                {sendingAudio ? 'enviando áudio' : 'sem áudio'}
               </span>
             ) : undefined
           }
@@ -223,7 +243,7 @@ export default function RoomPage() {
 
         {remoteEntries.length === 0 ? (
           <VideoPanel
-            label="REMOTO"
+            label="remoto"
             active={false}
             emptyHint={
               peers.length === 0
@@ -249,18 +269,25 @@ export default function RoomPage() {
       {diagnostics.length > 0 && <DiagnosticsTable rows={diagnostics} />}
 
       {errors.length > 0 && (
-        <div className="border border-lab-error/40 bg-lab-panel p-4 text-xs">
-          <div className="mb-2 tracking-widest text-lab-error">DIAGNÓSTICO</div>
-          <ul className="space-y-1 text-lab-dim">
+        <div className="rounded-card border border-alert/35 bg-alert/[0.06] p-5">
+          <div className="mb-2.5 text-[11px] font-medium tracking-[0.18em] text-alert uppercase">
+            Diagnóstico
+          </div>
+          <ul className="space-y-1.5 text-[13px] leading-relaxed text-sky/85">
             {errors.map((message, index) => (
-              <li key={`${index}-${message}`}>! {message}</li>
+              <li key={`${index}-${message}`} className="flex gap-2.5">
+                <span aria-hidden className="text-alert/70">
+                  ·
+                </span>
+                {message}
+              </li>
             ))}
           </ul>
         </div>
       )}
 
-      <p className="text-xs leading-relaxed text-lab-dim">
-        V0 - sem TURN, sem persistência, sem reconexão. Se a conexão falhar
+      <p className="max-w-2xl text-[12px] leading-relaxed text-denim/60">
+        V0 — sem TURN, sem persistência, sem reconexão. Se a conexão falhar
         entre redes diferentes, é o NAT: é exatamente esse problema que
         justifica o TURN na Phase 1.
       </p>
@@ -277,56 +304,73 @@ function formatBytes(bytes: number): string {
 
 function DiagnosticsTable({ rows }: { rows: PeerDiagnostics[] }) {
   return (
-    <div className="border border-lab-border bg-lab-panel p-4 text-xs">
-      <div className="mb-3 tracking-widest text-lab-dim">WEBRTC</div>
+    <div className="rounded-card border border-line bg-surface/70 p-5 sm:p-6">
+      <div className="mb-4 flex items-baseline justify-between gap-4">
+        <h2 className="text-[11px] font-medium tracking-[0.18em] text-denim/70 uppercase">
+          WebRTC
+        </h2>
+        <span className="text-[12px] text-denim/50">atualiza a cada 1s</span>
+      </div>
 
-      <div className="overflow-x-auto">
-        <table className="w-full border-collapse text-left">
-          <thead className="text-lab-dim">
-            <tr>
-              <th className="pr-4 pb-2 font-normal">PEER</th>
-              <th className="pr-4 pb-2 font-normal">CONN</th>
-              <th className="pr-4 pb-2 font-normal">ICE</th>
-              <th className="pr-4 pb-2 font-normal">PAR</th>
-              <th className="pr-4 pb-2 font-normal">CAND ↑/↓</th>
-              <th className="pr-4 pb-2 font-normal">RECEBIDO</th>
-              <th className="pr-4 pb-2 font-normal">FRAMES</th>
-              <th className="pr-4 pb-2 font-normal">ENVIADO</th>
+      <div className="-mx-1 overflow-x-auto px-1">
+        <table className="w-full border-collapse text-left text-[13px] whitespace-nowrap">
+          <thead>
+            <tr className="text-[11px] font-medium text-denim/60">
+              <th className="pr-6 pb-3 font-medium">peer</th>
+              <th className="pr-6 pb-3 font-medium">conexão</th>
+              <th className="pr-6 pb-3 font-medium">ice</th>
+              <th className="pr-6 pb-3 font-medium">par</th>
+              <th className="pr-6 pb-3 font-medium">cand ↑/↓</th>
+              <th className="pr-6 pb-3 font-medium">recebido</th>
+              <th className="pr-6 pb-3 font-medium">frames</th>
+              <th className="pb-3 font-medium">enviado</th>
             </tr>
           </thead>
-          <tbody>
+          <tbody className="font-mono">
             {rows.map((row) => {
               const connected = row.connectionState === 'connected';
               const receiving = row.inboundBytes > 0;
 
               return (
-                <tr key={row.peerId} className="border-t border-lab-border">
-                  <td className="py-2 pr-4">{row.peerId.slice(0, 8)}</td>
-                  <td
-                    className={`py-2 pr-4 ${connected ? 'text-lab-accent' : 'text-lab-warn'}`}
-                  >
-                    {row.connectionState}
+                <tr key={row.peerId} className="border-t border-line/70">
+                  <td className="py-3 pr-6">{row.peerId.slice(0, 8)}</td>
+                  <td className="py-3 pr-6">
+                    <span
+                      className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-[12px] ${
+                        connected
+                          ? 'bg-lilac/15 text-lilac-soft'
+                          : 'bg-denim/10 text-denim'
+                      }`}
+                    >
+                      <span
+                        aria-hidden
+                        className={`size-1.5 rounded-full ${
+                          connected ? 'bg-lilac-soft' : 'bg-denim/60'
+                        }`}
+                      />
+                      {row.connectionState}
+                    </span>
                   </td>
-                  <td className="py-2 pr-4 text-lab-dim">
+                  <td className="py-3 pr-6 text-denim">
                     {row.iceConnectionState}
                   </td>
-                  <td className="py-2 pr-4 text-lab-dim">
-                    {row.selectedPair ?? '-'}
+                  <td className="py-3 pr-6 text-denim">
+                    {row.selectedPair ?? '—'}
                   </td>
-                  <td className="py-2 pr-4 text-lab-dim">
+                  <td className="py-3 pr-6 text-denim">
                     {row.sentCandidates}/{row.receivedCandidates}
                     {row.pendingIce > 0 && ` (+${row.pendingIce})`}
                   </td>
                   <td
-                    className={`py-2 pr-4 ${receiving ? 'text-lab-accent' : 'text-lab-error'}`}
+                    className={`py-3 pr-6 ${receiving ? 'text-sky' : 'text-alert'}`}
                   >
                     {formatBytes(row.inboundBytes)}
                   </td>
-                  <td className="py-2 pr-4 text-lab-dim">
+                  <td className="py-3 pr-6 text-denim">
                     {row.framesDecoded}
                     {row.resolution && ` · ${row.resolution}`}
                   </td>
-                  <td className="py-2 pr-4 text-lab-dim">
+                  <td className="py-3 text-denim">
                     {formatBytes(row.outboundBytes)}
                   </td>
                 </tr>
@@ -336,9 +380,11 @@ function DiagnosticsTable({ rows }: { rows: PeerDiagnostics[] }) {
         </table>
       </div>
 
-      <p className="mt-3 leading-relaxed text-lab-dim">
-        RECEBIDO cresce e a tela está preta → problema de renderização.
-        RECEBIDO em zero → a mídia não chega; olhe CONN e PAR.
+      <p className="mt-4 max-w-2xl text-[12px] leading-relaxed text-denim/60">
+        <span className="text-sky/80">recebido</span> crescendo com a tela preta
+        indica problema de renderização. Em zero, a mídia não está chegando —
+        olhe <span className="text-sky/80">conexão</span> e{' '}
+        <span className="text-sky/80">par</span>.
       </p>
     </div>
   );
