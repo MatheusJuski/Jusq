@@ -40,6 +40,14 @@ export interface RoomClientHandlers {
   onRemoteStreamEnded(peerId: PeerId): void;
   onLocalStream(stream: MediaStream | null): void;
   onError(message: string): void;
+  /**
+   * Recado destinado a quem está usando, não a quem está depurando.
+   *
+   * Separado de `onError` de propósito: erros são técnicos e vão para o
+   * console; um aviso explica em português o que aconteceu e o que fazer.
+   * `null` limpa o aviso anterior.
+   */
+  onNotice(message: string | null): void;
 }
 
 /**
@@ -249,6 +257,8 @@ export class RoomClient {
     for (const track of this.#localStream.getTracks()) track.stop();
     this.#localStream = null;
     this.#handlers.onLocalStream(null);
+    // O aviso descreve a transmissão que acabou de terminar.
+    this.#handlers.onNotice(null);
 
     // Remover as trilhas não basta: `removeTrack` só altera o estado local. Sem uma nova offer o outro lado nunca fica sabendo, e o <video> dele congela no último quadro recebido. É a renegociação que encerra a transmissão de fato.
     for (const [peerId, state] of this.#peers) {
@@ -392,14 +402,15 @@ export class RoomClient {
   /**
    * Áudio junto da captura de tela.
    *
-   * Uma tentativa só. `getDisplayMedia` trata `audio: true` como obrigatório —
-   * se a fonte de áudio não iniciar, o pedido inteiro é rejeitado e o vídeo cai
-   * junto. Existia aqui uma segunda tentativa sem áudio para salvar a
-   * transmissão, mas ela abria um **segundo seletor de tela**, e a captura de
-   * áudio do sistema falha de forma determinística nesta plataforma (ADR-001).
-   * O resultado era incomodar sempre para contornar algo que não tem conserto.
+   * `getDisplayMedia` trata `audio: true` como **obrigatório**: se a fonte de
+   * áudio não iniciar, ele rejeita o pedido inteiro e o vídeo cai junto. Como
+   * não existe forma de marcá-lo opcional, a segunda tentativa faz esse papel.
    *
-   * Agora a falha é uma falha, com a instrução de trocar a fonte de áudio.
+   * O custo é abrir o seletor de tela de novo, e isso incomoda. Mas transmitir
+   * sem som é melhor do que não transmitir: quem escolheu uma janela quase
+   * sempre quer mostrar a janela, e o áudio era o extra.
+   *
+   * O aviso explica o que faltou — sem ele, o silêncio pareceria defeito.
    */
   async #captureWithDisplayAudio(): Promise<MediaStream | null> {
     // Todas as dicas que a especificação oferece.
@@ -423,13 +434,31 @@ export class RoomClient {
     } catch (error) {
       if (RoomClient.#cancelled(error)) return null;
 
+      // O detalhe técnico fica no console; a tela recebe a explicação.
       this.#handlers.onError(
-        `a captura com áudio falhou (${RoomClient.#describe(error)}). ` +
-          'Áudio junto da tela só funciona ao compartilhar uma aba do ' +
-          'navegador. Para tela inteira ou janela, troque a fonte de áudio ' +
-          'para "microfone" ou "nenhum" e tente de novo.',
+        `captura com áudio falhou: ${RoomClient.#describe(error)}`,
       );
-      return null;
+      this.#handlers.onNotice(
+        'Esta fonte não entrega áudio — a transmissão vai continuar só com ' +
+          'vídeo. Escolha a mesma fonte outra vez na janela que abrir. ' +
+          'Para levar som ao transmitir tela ou janela, troque a fonte de ' +
+          'áudio para "microfone".',
+      );
+
+      try {
+        return await navigator.mediaDevices.getDisplayMedia({ video: true });
+      } catch (retryError) {
+        if (RoomClient.#cancelled(retryError)) {
+          this.#handlers.onNotice(null);
+          return null;
+        }
+
+        this.#handlers.onNotice(null);
+        this.#handlers.onError(
+          `captura sem áudio também falhou: ${RoomClient.#describe(retryError)}`,
+        );
+        return null;
+      }
     }
   }
 

@@ -62,6 +62,14 @@ export default function RoomPage() {
   );
   const [copied, setCopied] = useState(false);
 
+  /**
+   * Aviso destinado a quem usa, não a quem depura.
+   *
+   * Um por vez: são recados sobre o estado atual da transmissão, não um
+   * histórico. O painel de erros técnicos saiu da tela e foi para o console.
+   */
+  const [notice, setNotice] = useState<string | null>(null);
+
   // Som começa desligado por peer: o autoplay só é autorizado com o elemento
   // mudo. Ligar exige um clique - que é justamente o gesto que o browser pede.
   const [audioOn, setAudioOn] = useState<Set<PeerId>>(new Set());
@@ -115,6 +123,7 @@ export default function RoomPage() {
       onPeersChange: setPeers,
       onLocalStream: setLocalStream,
       onError: reportError,
+      onNotice: setNotice,
       onRemoteStream: (peerId, stream) =>
         setRemoteStreams((prev) => new Map(prev).set(peerId, stream)),
       onRemoteStreamEnded: (peerId) =>
@@ -268,6 +277,26 @@ export default function RoomPage() {
           </button>
         </div>
       </div>
+
+      {notice && (
+        <div className="flex items-start gap-3 rounded-card border border-lilac/40 bg-lilac/[0.08] px-5 py-4">
+          <span
+            aria-hidden
+            className="mt-1.5 size-1.5 shrink-0 rounded-full bg-lilac-soft"
+          />
+          <p className="flex-1 text-[13px] leading-relaxed text-sky/85">
+            {notice}
+          </p>
+          <button
+            type="button"
+            onClick={() => setNotice(null)}
+            aria-label="Dispensar aviso"
+            className="shrink-0 cursor-pointer rounded-full border border-line px-3 py-1 text-[12px] text-denim transition-colors hover:border-denim/60 hover:text-sky"
+          >
+            ok
+          </button>
+        </div>
+      )}
 
       {/* --------------------------------------------------------- vídeos */}
       <div className="grid gap-4 lg:grid-cols-2">
