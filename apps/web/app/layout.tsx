@@ -1,5 +1,8 @@
 import type { Metadata } from 'next';
 import { Poppins } from 'next/font/google';
+import Link from 'next/link';
+
+import { ExperimentNav } from '@/components/experiment-nav';
 
 import './globals.css';
 
@@ -21,8 +24,11 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="pt-BR" className={poppins.variable}>
       <body className="relative">
         <div className="relative z-10 flex min-h-screen flex-col">
+          {/* `Link` e não `<a>`: navegação entre experimentos é client-side,
+              e um `<a>` recarregaria a aplicação inteira a cada volta para o
+              catálogo. */}
           <header className="flex items-center justify-between px-6 py-5 sm:px-10">
-            <a href="/" className="group flex items-center gap-2.5">
+            <Link href="/" className="group flex items-center gap-2.5">
               <span
                 aria-hidden
                 className="size-2.5 rounded-full bg-lilac transition-transform group-hover:scale-125"
@@ -30,7 +36,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
               <span className="text-[15px] font-semibold tracking-tight">
                 Jusq&apos;s
               </span>
-            </a>
+            </Link>
+
+            <ExperimentNav />
           </header>
 
           <main className="flex-1">{children}</main>

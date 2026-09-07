@@ -1,107 +1,105 @@
-'use client';
+import Link from 'next/link';
 
-import { useRouter } from 'next/navigation';
-import { useState } from 'react';
+import { Card, SectionTitle, StatusDot, Tag } from '@/components/ui';
+import { SystemStatus } from '@/components/system-status';
+import { EXPERIMENTS } from '@/lib/experiments';
 
 /**
- * Gera um id de sala curto e legível.
+ * Catálogo dos experimentos.
  *
- * Não é seguro por obscuridade - qualquer um com o link entra. Controle de
- * acesso é Phase 2, junto com autenticação.
+ * Componente de servidor: o conteúdo vem do registro, que é estático, e nada
+ * aqui depende do navegador. Só o painel de status é cliente, porque ele
+ * consulta o servidor de signaling.
  */
-function newRoomId(): string {
-  const alphabet = 'abcdefghjkmnpqrstuvwxyz23456789';
-  const bytes = crypto.getRandomValues(new Uint8Array(8));
-  return Array.from(bytes, (b) => alphabet[b % alphabet.length]).join('');
-}
-
-const UPCOMING = [
-  { name: 'Draw Lab', about: 'desenho colaborativo realtime' },
-  { name: 'GitHub RPG', about: 'atividade do GitHub como RPG' },
-  { name: 'RPG Lab', about: 'geração procedural de mundos' },
-  { name: 'Simulation Lab', about: 'ecossistema artificial' },
-];
-
 export default function HomePage() {
-  const router = useRouter();
-  const [joinId, setJoinId] = useState('');
-
   return (
     <div className="mx-auto w-full max-w-4xl px-6 pt-10 pb-20 sm:px-10">
       <section className="max-w-2xl">
         <h1 className="text-[2.75rem] leading-[1.05] font-semibold tracking-tight sm:text-6xl">
-          Compartilhe sua tela aqui.
+          Um laboratório de
           <br />
+          <span className="text-lilac-soft">experimentos digitais.</span>
         </h1>
         <p className="mt-5 max-w-lg text-[15px] leading-relaxed text-denim">
-          O vídeo vai direto de um navegador ao outro por WebRTC. O servidor só
-          apresenta os dois e sai do caminho.
+          Cada experimento aqui existe para explorar um problema técnico diferente —
+          sistemas realtime, simulação, geração procedural. Nenhum deles precisa ter
+          valor comercial.
         </p>
       </section>
 
-      <section className="mt-12 rounded-card border border-line bg-surface/70 p-6 sm:p-8">
-        <div className="flex flex-wrap items-center gap-3">
-          <span className="text-[13px] text-denim/80">
-            WebRTC · WebSocket · mesh P2P
-          </span>
+      <section className="mt-12">
+        <div className="mb-5 flex items-baseline justify-between gap-4">
+          <SectionTitle>Experimentos</SectionTitle>
+          <SystemStatus />
         </div>
 
-        <div className="mt-7 flex flex-col gap-3 sm:flex-row sm:items-center">
-          <button
-            type="button"
-            onClick={() => router.push(`/room/${newRoomId()}`)}
-            className="cursor-pointer rounded-full bg-lilac px-7 py-3.5 text-[14px] font-semibold text-white transition-colors hover:bg-lilac-soft"
-          >
-            Criar sala
-          </button>
+        <ul className="grid gap-3 sm:grid-cols-2">
+          {EXPERIMENTS.map((experiment) => {
+            const active = experiment.status === 'ativo';
 
-          <div className="flex items-center gap-3 text-[13px] text-denim/60 sm:px-2">
-            <span className="h-px w-8 bg-line sm:hidden" />
-            ou entre em uma
-            <span className="h-px flex-1 bg-line sm:hidden" />
-          </div>
+            const body = (
+              <Card
+                className={`flex h-full flex-col gap-3 p-5 transition-colors ${
+                  active ? 'hover:border-lilac/50' : 'opacity-60'
+                }`}
+              >
+                <div className="flex items-center justify-between gap-3">
+                  <span className="font-mono text-[12px] text-denim/70">
+                    {experiment.number}
+                  </span>
+                  <span
+                    className={`flex items-center gap-1.5 text-[11px] font-medium ${
+                      active ? 'text-lilac-soft' : 'text-denim/60'
+                    }`}
+                  >
+                    <StatusDot className={active ? 'bg-lilac-soft' : 'bg-denim/50'} />
+                    {experiment.status}
+                  </span>
+                </div>
 
-          <form
-            className="flex flex-1 gap-2"
-            onSubmit={(event) => {
-              event.preventDefault();
-              const id = joinId.trim();
-              if (id) router.push(`/room/${id}`);
-            }}
-          >
-            <input
-              value={joinId}
-              onChange={(event) => setJoinId(event.target.value)}
-              placeholder="código da sala"
-              className="min-w-0 flex-1 rounded-control border border-line bg-ink px-4 py-3.5 font-mono text-[14px] outline-none transition-colors placeholder:font-sans placeholder:text-denim/50 focus:border-lilac/60"
-            />
-            <button
-              type="submit"
-              disabled={!joinId.trim()}
-              className="cursor-pointer rounded-control border border-line px-5 py-3.5 text-[14px] font-medium transition-colors hover:border-denim/60 disabled:cursor-not-allowed disabled:opacity-35"
-            >
-              Entrar
-            </button>
-          </form>
-        </div>
+                <div>
+                  <h3 className="text-[16px] font-semibold tracking-tight">
+                    {experiment.name}
+                  </h3>
+                  <p className="mt-1 text-[13px] leading-relaxed text-denim/80">
+                    {experiment.tagline}
+                  </p>
+                </div>
+
+                <div className="mt-auto flex flex-wrap gap-1.5 pt-1">
+                  {experiment.tech.map((item) => (
+                    <Tag key={item}>{item}</Tag>
+                  ))}
+                </div>
+              </Card>
+            );
+
+            return (
+              <li key={experiment.id}>
+                {/* Só o que existe vira link. Um cartão clicável que não leva a
+                    lugar nenhum é pior que um cartão apagado. */}
+                {active ? (
+                  <Link href={`/${experiment.id}`} className="block h-full">
+                    {body}
+                  </Link>
+                ) : (
+                  body
+                )}
+              </li>
+            );
+          })}
+        </ul>
       </section>
 
-      <section className="mt-14">
-        <h2 className="text-[11px] font-medium tracking-[0.18em] text-denim/60 uppercase">
-          Próximos desenvolvimentos
-        </h2>
-
-        <ul className="mt-5 grid gap-px overflow-hidden rounded-card border border-line bg-line sm:grid-cols-2">
-          {UPCOMING.map((item) => (
-            <li
-              key={item.name}
-              className="flex items-baseline gap-3 bg-surface/70 px-5 py-4"
-            >
-              <span className="text-[14px] font-medium">{item.name}</span>
-              <span className="text-[13px] text-denim/70">{item.about}</span>
-            </li>
-          ))}
-        </ul>
+      <section className="mt-14 max-w-2xl">
+        <SectionTitle>Por que</SectionTitle>
+        <p className="mt-4 text-[14px] leading-relaxed text-denim">
+          O Jusq&apos;s não tem uma finalidade única e não pretende ser finalizado. A
+          ideia é transformar{' '}
+          <span className="text-sky">&ldquo;seria legal fazer isso&rdquo;</span> em{' '}
+          <span className="text-sky">&ldquo;vou descobrir como&rdquo;</span> — e
+          documentar o que quebrou no caminho.
+        </p>
       </section>
     </div>
   );

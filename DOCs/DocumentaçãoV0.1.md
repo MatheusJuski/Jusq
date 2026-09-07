@@ -1174,8 +1174,21 @@ A plataforma que hospeda os demais experimentos.
 - [ ] Sistema de experimentos
 - [ ] Navegação
 - [ ] Status do sistema
-- [ ] Perfil
-- [ ] Sistema de logs
+
+Dois itens saíram, pela mesma pergunta que derrubou o Postgres na Phase 1 —
+**o que isso resolve?**
+
+- [ ] ~~Perfil~~
+- [ ] ~~Sistema de logs~~
+
+**Perfil** não tem o que guardar. Não há autenticação, não há dado de usuário,
+e as salas são anônimas por design. O nome exibido — escolhido na sala e
+lembrado no navegador — já cobre a única necessidade real: saber quem é quem.
+
+**Sistema de logs** já existe, no lugar certo. O servidor tem `pino`
+estruturado e o `GET /health` expõe o estado agregado; o cliente manda erro
+para o console. Um painel de logs na tela já foi tentado e **removido** por
+ser ruído — repetir seria desfazer uma decisão tomada com o produto na mão.
 
 ---
 

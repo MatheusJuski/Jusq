@@ -17,6 +17,7 @@ import {
   listAudioInputs,
 } from '@/lib/audio-source';
 import { RemoteStreamPanel, StreamVideo, VideoPanel } from '@/components/stream-panel';
+import { Button, Card } from '@/components/ui';
 import {
   nameOrDefault,
   normalizeName,
@@ -209,7 +210,7 @@ export default function RoomPage() {
   return (
     <div className="mx-auto flex w-full max-w-6xl flex-col gap-5 px-6 pb-16 sm:px-10">
       {/* ---------------------------------------------------------- barra */}
-      <div className="flex flex-wrap items-center justify-between gap-x-6 gap-y-4 rounded-card border border-line bg-surface/70 px-5 py-4">
+      <Card className="flex flex-wrap items-center justify-between gap-x-6 gap-y-4 px-5 py-4">
         <div className="flex items-center gap-5 text-[13px]">
           <span className="flex items-baseline gap-2">
             <span className="text-denim/70">sala</span>
@@ -326,16 +327,10 @@ export default function RoomPage() {
             ))}
           </select>
 
-          <button
-            type="button"
-            onClick={copyLink}
-            className="cursor-pointer rounded-full border border-line px-4 py-2.5 text-[13px] font-medium transition-colors hover:border-denim/60"
-          >
-            {copied ? 'link copiado' : 'copiar link'}
-          </button>
+          <Button onClick={copyLink}>{copied ? 'link copiado' : 'copiar link'}</Button>
 
-          <button
-            type="button"
+          <Button
+            variant={isSharing ? 'outline' : 'primary'}
             disabled={status !== 'connected'}
             onClick={() => {
               const client = clientRef.current;
@@ -343,16 +338,12 @@ export default function RoomPage() {
               if (client.isSharing) client.stopSharing();
               else void client.startSharing();
             }}
-            className={`cursor-pointer rounded-full px-5 py-2.5 text-[13px] font-semibold transition-colors disabled:cursor-not-allowed disabled:opacity-35 ${
-              isSharing
-                ? 'border border-line text-sky hover:border-alert/70 hover:text-alert'
-                : 'bg-lilac text-white hover:bg-lilac-soft'
-            }`}
+            className={isSharing ? 'hover:border-alert/70 hover:text-alert' : ''}
           >
             {isSharing ? 'parar transmissão' : 'compartilhar tela'}
-          </button>
+          </Button>
         </div>
-      </div>
+      </Card>
 
       {notice && (
         <div className="flex items-start gap-3 rounded-card border border-lilac/40 bg-lilac/[0.08] px-5 py-4">
