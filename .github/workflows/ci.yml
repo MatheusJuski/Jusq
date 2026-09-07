@@ -1,0 +1,78 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+# Push em cima de push cancela o run anterior: o que importa é o estado atual
+# do branch, não a fila de estados intermediários.
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  check:
+    name: lint · typecheck · test · build
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      # Antes do setup-node: é o `packageManager` do package.json que fixa a
+      # versão do pnpm, e o cache do setup-node depende do pnpm já existir.
+      - uses: pnpm/action-setup@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      # `--frozen-lockfile` falha se o lockfile estiver desatualizado em vez de
+      # atualizá-lo em silêncio. Um lockfile que o CI conserta sozinho é um
+      # lockfile que não reproduz nada.
+      - run: pnpm install --frozen-lockfile
+
+      - name: Formatação
+        run: pnpm format:check
+
+      - name: Lint
+        run: pnpm lint
+
+      - name: Typecheck
+        run: pnpm typecheck
+
+      - name: Testes
+        run: pnpm test
+
+      # Por último e mesmo assim obrigatório: typecheck passa em código que o
+      # bundler não consegue empacotar.
+      - name: Build
+        run: pnpm build
+
+  docker:
+    name: imagem do servidor
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      # O deploy do servidor é esta imagem. Ela quebra de um jeito que o
+      # `pnpm build` não pega: pacote novo no monorepo sem o `COPY`
+      # correspondente compila localmente e falha só no container limpo.
+      - name: Build da imagem
+        run: docker build -f apps/server/Dockerfile -t jusqs-server .
+
+      - name: Sobe e responde no /health
+        run: |
+          docker run -d --name jusqs-server -p 3001:3001 -e PORT=3001 jusqs-server
+          for i in $(seq 1 30); do
+            if curl -fsS http://localhost:3001/health; then
+              echo
+              exit 0
+            fi
+            sleep 1
+          done
+          echo "servidor não respondeu em 30s"
+          docker logs jusqs-server
+          exit 1

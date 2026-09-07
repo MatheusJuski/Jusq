@@ -16,8 +16,7 @@
 
   /* ------------------------------------------------------------ tipografia */
   --font-sans: var(--font-poppins), ui-sans-serif, system-ui, sans-serif;
-  --font-mono: ui-monospace, 'Cascadia Code', 'JetBrains Mono', Consolas,
-    monospace;
+  --font-mono: ui-monospace, 'Cascadia Code', 'JetBrains Mono', Consolas, monospace;
 
   /* ------------------------------------------------------------------ raio */
   --radius-card: 20px;

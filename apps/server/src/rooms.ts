@@ -13,9 +13,7 @@ export interface Peer {
   send(message: ServerMessage): void;
 }
 
-export type JoinResult =
-  | { ok: true; peers: PeerId[] }
-  | { ok: false; reason: string };
+export type JoinResult = { ok: true; peers: PeerId[] } | { ok: false; reason: string };
 
 /**
  * Registro de salas em memória.

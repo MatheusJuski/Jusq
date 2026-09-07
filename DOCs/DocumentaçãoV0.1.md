@@ -15,6 +15,7 @@ Novos experimentos podem ser adicionados continuamente conforme novas ideias sur
 O Jusq's funciona como um conjunto de experimentos independentes compartilhando uma mesma infraestrutura.
 
 A ideia é transformar:
+
 > "Seria legal fazer isso..."
 
 em:
@@ -38,7 +39,7 @@ Cada experimento deve explorar algum conceito técnico ou criativo diferente.
                            │
                            ▼
                     Shared Platform
-````
+```
 
 ---
 
@@ -48,30 +49,30 @@ Cada experimento deve explorar algum conceito técnico ou criativo diferente.
 
 Criar um projeto de desenvolvimento contínuo que permita explorar:
 
-* sistemas realtime;
-* WebRTC;
-* WebSockets;
-* comunicação distribuída;
+- sistemas realtime;
+- WebRTC;
+- WebSockets;
+- comunicação distribuída;
 
-* simulações;
-* geração procedural;
-* computação gráfica;
-* APIs externas;
-* processamento de dados;
-* performance;
-* observabilidade;
-* arquitetura de software;
-* infraestrutura;
-* experimentação.
+- simulações;
+- geração procedural;
+- computação gráfica;
+- APIs externas;
+- processamento de dados;
+- performance;
+- observabilidade;
+- arquitetura de software;
+- infraestrutura;
+- experimentação.
 
 ## Secundários
 
-* criar experiências visualmente interessantes;
-* testar tecnologias novas;
-* transformar ideias em protótipos funcionais;
-* documentar problemas e soluções;
-* experimentar diferentes arquiteturas;
-* criar projetos que possam evoluir durante anos.
+- criar experiências visualmente interessantes;
+- testar tecnologias novas;
+- transformar ideias em protótipos funcionais;
+- documentar problemas e soluções;
+- experimentar diferentes arquiteturas;
+- criar projetos que possam evoluir durante anos.
 
 ---
 
@@ -321,12 +322,12 @@ TypeScript será a principal linguagem do projeto.
 
 Motivos:
 
-* tipagem estática;
-* compartilhamento de tipos entre frontend e backend;
-* excelente suporte para aplicações realtime;
-* integração com Node.js;
-* bom suporte para aplicações web;
-* facilidade de manutenção conforme o projeto cresce.
+- tipagem estática;
+- compartilhamento de tipos entre frontend e backend;
+- excelente suporte para aplicações realtime;
+- integração com Node.js;
+- bom suporte para aplicações web;
+- facilidade de manutenção conforme o projeto cresce.
 
 ---
 
@@ -338,13 +339,13 @@ Responsável pela aplicação web principal.
 
 Utilizado para:
 
-* interface;
-* routing;
-* páginas;
-* gerenciamento da aplicação;
-* integração com APIs;
-* autenticação;
-* experiências interativas.
+- interface;
+- routing;
+- páginas;
+- gerenciamento da aplicação;
+- integração com APIs;
+- autenticação;
+- experiências interativas.
 
 ## React
 
@@ -358,9 +359,9 @@ Utilizado para desenvolvimento do design system e estilização.
 
 Utilizado principalmente em:
 
-* Draw Lab;
-* RPG Lab;
-* Simulation Lab.
+- Draw Lab;
+- RPG Lab;
+- Simulation Lab.
 
 ## WebGL
 
@@ -380,13 +381,13 @@ Framework HTTP principal.
 
 Responsabilidades:
 
-* REST API;
-* autenticação;
-* gerenciamento de sessões;
-* WebSocket;
-* WebRTC signaling;
-* integração com banco;
-* gerenciamento dos experimentos.
+- REST API;
+- autenticação;
+- gerenciamento de sessões;
+- WebSocket;
+- WebRTC signaling;
+- integração com banco;
+- gerenciamento dos experimentos.
 
 Arquitetura:
 
@@ -445,12 +446,12 @@ Client C ─────┘
 
 Casos de uso:
 
-* desenho colaborativo;
-* presença;
-* eventos;
-* notificações;
-* salas;
-* simulações realtime.
+- desenho colaborativo;
+- presença;
+- eventos;
+- notificações;
+- salas;
+- simulações realtime.
 
 ---
 
@@ -469,17 +470,20 @@ Utilizado principalmente para transmissão de mídia.
 
 Casos de uso:
 
-* compartilhamento de tela;
-* áudio;
-* vídeo;
-* comunicação peer-to-peer.
+- compartilhamento de tela;
+- áudio;
+- vídeo;
+- comunicação peer-to-peer.
 
 ---
 
 # 🗄️ Banco de dados
 
-> **Quando entra:** Phase 1. O V0 mantém as salas em memória (`Map()`).
-> O banco só entra quando existir algo que precise sobreviver a um restart.
+> **Quando entra:** ainda não. A condição continua valendo — "só entra quando
+> existir algo que precise sobreviver a um restart" — e na Phase 1 descobriu-se
+> que a sala não é esse algo. Ver
+> [`adr/003-postgres-adiado.md`](./adr/003-postgres-adiado.md).
+> O primeiro candidato real é o Draw Lab, na Phase 4.
 
 ## PostgreSQL
 
@@ -510,13 +514,13 @@ Será introduzido quando existir uma necessidade real.
 
 Possíveis usos:
 
-* cache;
-* presença;
-* sessões;
-* rate limiting;
-* pub/sub;
-* estado temporário;
-* comunicação entre processos.
+- cache;
+- presença;
+- sessões;
+- rate limiting;
+- pub/sub;
+- estado temporário;
+- comunicação entre processos.
 
 ---
 
@@ -541,13 +545,13 @@ Estrutura possível:
 
 Possíveis arquivos:
 
-* imagens;
-* desenhos;
-* screenshots;
-* mapas;
-* replays;
-* exports;
-* arquivos gerados pelos experimentos.
+- imagens;
+- desenhos;
+- screenshots;
+- mapas;
+- replays;
+- exports;
+- arquivos gerados pelos experimentos.
 
 ---
 
@@ -573,10 +577,10 @@ Browser B
 
 Adicionar:
 
-* áudio;
-* câmera;
-* mute;
-* seleção de dispositivo.
+- áudio;
+- câmera;
+- mute;
+- seleção de dispositivo.
 
 ### V3
 
@@ -594,9 +598,9 @@ Packet Loss: 0.2%
 
 Adicionar:
 
-* gravação;
-* screenshots;
-* controle de qualidade.
+- gravação;
+- screenshots;
+- controle de qualidade.
 
 ### V5
 
@@ -606,12 +610,12 @@ Adicionar múltiplos usuários.
 
 Experimentar:
 
-* bitrate adaptativo;
-* reconexão;
-* congestion control;
-* diferentes codecs;
-* diferentes resoluções;
-* diferentes limites de banda.
+- bitrate adaptativo;
+- reconexão;
+- congestion control;
+- diferentes codecs;
+- diferentes resoluções;
+- diferentes limites de banda.
 
 ---
 
@@ -645,15 +649,15 @@ Clients
 
 ## Funcionalidades
 
-* brush;
-* eraser;
-* cores;
-* tamanho;
-* undo;
-* redo;
-* layers;
-* usuários;
-* cursores realtime.
+- brush;
+- eraser;
+- cores;
+- tamanho;
+- undo;
+- redo;
+- layers;
+- usuários;
+- cursores realtime.
 
 ---
 
@@ -689,14 +693,14 @@ Experimentos relacionados a RPG.
 
 Gerar personagens com:
 
-* raça;
-* classe;
-* origem;
-* personalidade;
-* atributos;
-* background;
-* facção;
-* relações.
+- raça;
+- classe;
+- origem;
+- personalidade;
+- atributos;
+- background;
+- facção;
+- relações.
 
 Exemplo:
 
@@ -782,12 +786,12 @@ terrain
 
 As criaturas podem:
 
-* procurar comida;
-* fugir;
-* caçar;
-* reproduzir;
-* morrer;
-* sofrer mutações.
+- procurar comida;
+- fugir;
+- caçar;
+- reproduzir;
+- morrer;
+- sofrer mutações.
 
 ---
 
@@ -824,13 +828,13 @@ Transformar atividade do GitHub em uma experiência de RPG.
 
 O sistema coleta:
 
-* repositories;
-* commits;
-* linguagens;
-* pull requests;
-* issues;
-* atividade;
-* releases.
+- repositories;
+- commits;
+- linguagens;
+- pull requests;
+- issues;
+- atividade;
+- releases.
 
 E transforma os dados em atributos.
 
@@ -991,19 +995,21 @@ Simulation:
 
 Tipos de testes:
 
-* unitários;
-* integração;
-* API;
-* realtime;
-* posteriormente E2E.
+- unitários;
+- integração;
+- API;
+- realtime;
+- posteriormente E2E.
 
 ---
 
 # 🐳 Infraestrutura
 
-> **Quando entra:** Phase 1. O V0 roda com `pnpm dev` e faz deploy direto em
-> Vercel + Render. Docker entra aqui apenas como formato de deploy do
-> servidor; como ambiente local, só quando houver banco para orquestrar.
+> **Quando entra:** como formato de deploy do servidor, já entrou (o
+> `Dockerfile` do `apps/server`, verificado no CI). Como **ambiente local**,
+> ainda não: a própria condição escrita aqui — "só quando houver banco para
+> orquestrar" — não foi satisfeita na Phase 1. Ver
+> [`adr/003-postgres-adiado.md`](./adr/003-postgres-adiado.md).
 
 ## Docker
 
@@ -1093,19 +1099,19 @@ Phase 3+  evolução dos experimentos
 
 O menor caminho até algo que funciona. Sem banco, sem Docker, sem CI.
 
-* [ ] Monorepo (pnpm workspaces)
-* [ ] TypeScript
-* [ ] `apps/web` — Next.js
-* [ ] `apps/server` — Fastify
-* [ ] `packages/types` — mensagens de signaling
-* [ ] WebSocket connection
-* [ ] Salas em memória (`Map()`)
-* [ ] WebRTC signaling
-* [ ] Criar sala + link compartilhável
-* [ ] Compartilhar tela entre dois browsers
-* [ ] Áudio da tela compartilhada *(antecipado da Phase 3)*
-* [ ] Deploy do web (Vercel)
-* [ ] Deploy do server (Render)
+- [x] Monorepo (pnpm workspaces)
+- [x] TypeScript
+- [x] `apps/web` — Next.js
+- [x] `apps/server` — Fastify
+- [x] `packages/types` — mensagens de signaling
+- [x] WebSocket connection
+- [x] Salas em memória (`Map()`)
+- [x] WebRTC signaling
+- [x] Criar sala + link compartilhável
+- [x] Compartilhar tela entre dois browsers
+- [x] Áudio da tela compartilhada _(antecipado da Phase 3)_
+- [x] Deploy do web (Vercel)
+- [x] Deploy do server (Render)
 
 ### Critério de conclusão
 
@@ -1129,16 +1135,33 @@ Só começa depois que a Phase 0 estiver no ar.
 
 Agora os requisitos são conhecidos, não adivinhados.
 
-* [ ] ESLint + Prettier
-* [ ] Type checking
-* [ ] Test framework
-* [ ] Logger estruturado
-* [ ] Validação de env / config
-* [ ] PostgreSQL (Neon)
-* [ ] Persistência de salas
-* [ ] TURN (Cloudflare Realtime)
-* [ ] Docker Compose (ambiente local)
-* [ ] GitHub Actions (lint + typecheck + test)
+- [x] ESLint + Prettier
+- [x] Type checking
+- [x] Test framework
+- [x] Logger estruturado
+- [x] Validação de env / config
+- [x] GitHub Actions (lint + typecheck + test)
+- [x] TURN — `GET /ice` no servidor, provedor por variável de ambiente
+
+Três itens desta lista foram **adiados**, e o motivo importa mais que a lista:
+
+- [ ] ~~PostgreSQL (Neon)~~
+- [ ] ~~Persistência de salas~~
+- [ ] ~~Docker Compose (ambiente local)~~
+
+A pergunta que justificava os dois primeiros só foi respondida ao começar a
+fase: **a sala não precisa sobreviver — ela dura até a última pessoa sair.**
+Isso é exatamente o que o `Map()` em memória já faz. Sem dado para guardar, o
+banco não tem motivo; e sem banco, o Compose local orquestraria dois processos
+que o `pnpm dev` já sobe num comando.
+
+Decisão registrada em [`adr/003-postgres-adiado.md`](./adr/003-postgres-adiado.md),
+com o gatilho de reabertura: o Draw Lab (Phase 4), onde o desenho é o produto e
+não pode morrer no restart.
+
+> É a Regra 5 funcionando na direção contrária à esperada. "Funcionar antes de
+> estruturar" costuma adiar a estrutura; aqui ela mostrou que parte da estrutura
+> planejada não tinha função nenhuma.
 
 ---
 
@@ -1146,13 +1169,13 @@ Agora os requisitos são conhecidos, não adivinhados.
 
 A plataforma que hospeda os demais experimentos.
 
-* [ ] Layout principal
-* [ ] Design system base
-* [ ] Sistema de experimentos
-* [ ] Navegação
-* [ ] Status do sistema
-* [ ] Perfil
-* [ ] Sistema de logs
+- [ ] Layout principal
+- [ ] Design system base
+- [ ] Sistema de experimentos
+- [ ] Navegação
+- [ ] Status do sistema
+- [ ] Perfil
+- [ ] Sistema de logs
 
 ---
 
@@ -1163,82 +1186,82 @@ Retomada do Screen Lab a partir do V2.
 > `Áudio` saiu desta fase: foi antecipado para a Phase 0, porque uma
 > transmissão de tela sem som não cumpre o propósito do experimento.
 
-* [ ] Câmera
-* [ ] Mute
-* [ ] Seleção de dispositivo
-* [ ] Métricas WebRTC
-* [ ] Gravação
-* [ ] Screenshots
-* [ ] Controle de qualidade
-* [ ] Múltiplos usuários (SFU)
-* [ ] Bitrate adaptativo
-* [ ] Reconexão
-* [ ] Congestion control
+- [ ] Câmera
+- [ ] Mute
+- [ ] Seleção de dispositivo
+- [ ] Métricas WebRTC
+- [ ] Gravação
+- [ ] Screenshots
+- [ ] Controle de qualidade
+- [ ] Múltiplos usuários (SFU)
+- [ ] Bitrate adaptativo
+- [ ] Reconexão
+- [ ] Congestion control
 
 ---
 
 ## Phase 4 — Draw Lab
 
-* [ ] Canvas
-* [ ] Brush
-* [ ] Eraser
-* [ ] Cores
-* [ ] Undo / Redo
-* [ ] WebSocket synchronization
-* [ ] Multiplayer
-* [ ] Cursors
-* [ ] Layers
-* [ ] Histórico
-* [ ] Replay
-* [ ] Exportação
+- [ ] Canvas
+- [ ] Brush
+- [ ] Eraser
+- [ ] Cores
+- [ ] Undo / Redo
+- [ ] WebSocket synchronization
+- [ ] Multiplayer
+- [ ] Cursors
+- [ ] Layers
+- [ ] Histórico
+- [ ] Replay
+- [ ] Exportação
 
 ---
 
 ## Phase 5 — GitHub RPG
 
-* [ ] GitHub OAuth
-* [ ] Importar perfil
-* [ ] Importar repositories
-* [ ] Importar linguagens
-* [ ] Importar commits
-* [ ] Sistema de XP
-* [ ] Levels
-* [ ] Attributes
-* [ ] Achievements
-* [ ] Histórico de evolução
+- [ ] GitHub OAuth
+- [ ] Importar perfil
+- [ ] Importar repositories
+- [ ] Importar linguagens
+- [ ] Importar commits
+- [ ] Sistema de XP
+- [ ] Levels
+- [ ] Attributes
+- [ ] Achievements
+- [ ] Histórico de evolução
 
 ---
 
 ## Phase 6 — RPG Lab
 
-* [ ] Character Generator
-* [ ] Character Editor
-* [ ] World Generator
-* [ ] Seeds
-* [ ] Kingdom Generator
-* [ ] City Generator
-* [ ] NPC Generator
-* [ ] Factions
-* [ ] Lore
-* [ ] World History
-* [ ] World Export
+- [ ] Character Generator
+- [ ] Character Editor
+- [ ] World Generator
+- [ ] Seeds
+- [ ] Kingdom Generator
+- [ ] City Generator
+- [ ] NPC Generator
+- [ ] Factions
+- [ ] Lore
+- [ ] World History
+- [ ] World Export
 
 ---
 
 ## Phase 7 — Simulation Lab
 
-* [ ] Artificial creatures
-* [ ] Environment
-* [ ] Food system
-* [ ] Energy system
-* [ ] Reproduction
-* [ ] Mutation
-* [ ] Predators
-* [ ] Generations
-* [ ] Statistics
-* [ ] Visualization
-* [ ] Save/Load simulation
-* [ ] Simulation replay
+- [ ] Artificial creatures
+- [ ] Environment
+- [ ] Food system
+- [ ] Energy system
+- [ ] Reproduction
+- [ ] Mutation
+- [ ] Predators
+- [ ] Generations
+- [ ] Statistics
+- [ ] Visualization
+- [ ] Save/Load simulation
+- [ ] Simulation replay
 
 ---
 
@@ -1248,11 +1271,11 @@ Retomada do Screen Lab a partir do V2.
 
 O Jusq's deve parecer uma mistura de:
 
-* laboratório experimental;
-* software técnico;
-* interface de jogo;
-* sistema operacional;
-* ferramenta científica.
+- laboratório experimental;
+- software técnico;
+- interface de jogo;
+- sistema operacional;
+- ferramenta científica.
 
 Evitar uma estética SaaS tradicional.
 
@@ -1304,16 +1327,16 @@ Os nomes dos componentes poderão ser ajustados para refletir a identidade final
 
 O projeto deve considerar:
 
-* autenticação;
-* autorização;
-* validação de inputs;
-* rate limiting;
-* proteção contra abuso;
-* sanitização;
-* gerenciamento seguro de tokens;
-* controle de permissões;
-* segurança de WebSocket;
-* segurança de WebRTC signaling.
+- autenticação;
+- autorização;
+- validação de inputs;
+- rate limiting;
+- proteção contra abuso;
+- sanitização;
+- gerenciamento seguro de tokens;
+- controle de permissões;
+- segurança de WebSocket;
+- segurança de WebRTC signaling.
 
 ---
 
@@ -1375,9 +1398,15 @@ Exemplo:
 
 ### Registrados
 
-* [`adr/001-audio-do-sistema.md`](./adr/001-audio-do-sistema.md) — por que a
+- [`adr/001-audio-do-sistema.md`](./adr/001-audio-do-sistema.md) — por que a
   captura de áudio do sistema fica fora do escopo web, e quando o caminho
   desktop passa a valer
+- [`adr/002-validacao-de-entrada.md`](./adr/002-validacao-de-entrada.md) — por
+  que zod entra pelo ambiente e o parser do protocolo continua manual
+- [`adr/003-postgres-adiado.md`](./adr/003-postgres-adiado.md) — por que a
+  Phase 1 termina sem banco, e o que reabre a decisão
+- [`adr/004-credenciais-de-turn.md`](./adr/004-credenciais-de-turn.md) — por que
+  a configuração de ICE passou a vir do servidor
 
 ### Formato
 
@@ -1449,21 +1478,21 @@ Screen
 
 Com o mínimo necessário:
 
-* Next.js;
-* TypeScript;
-* Fastify;
-* WebSocket;
-* WebRTC.
+- Next.js;
+- TypeScript;
+- Fastify;
+- WebSocket;
+- WebRTC.
 
 Explicitamente **fora** do primeiro milestone:
 
-* Docker;
-* PostgreSQL;
-* Redis;
-* CI;
-* testes;
-* autenticação;
-* design system.
+- Docker;
+- PostgreSQL;
+- Redis;
+- CI;
+- testes;
+- autenticação;
+- design system.
 
 Nada disso está descartado — apenas não é pré-requisito para a tela aparecer do
 outro lado. Tudo entra na Phase 1, quando os requisitos forem reais.

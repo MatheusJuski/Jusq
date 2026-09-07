@@ -14,11 +14,11 @@
 
 ## 💰 Resumo de custo
 
-| Item | Custo |
-| ---- | ----- |
-| Infraestrutura mensal | **R$ 0,00** |
+| Item                       | Custo                                      |
+| -------------------------- | ------------------------------------------ |
+| Infraestrutura mensal      | **R$ 0,00**                                |
 | Domínio próprio (opcional) | ~R$ 40,00 / ano (`.com.br` no Registro.br) |
-| Conforto (VPS, opcional) | ~R$ 30,00 / mês |
+| Conforto (VPS, opcional)   | ~R$ 30,00 / mês                            |
 
 O projeto **não precisa de cartão de crédito** para começar.
 
@@ -28,15 +28,15 @@ O projeto **não precisa de cartão de crédito** para começar.
 
 Zero configuração de servidor. Deploy no mesmo dia.
 
-| Componente | Serviço | Limite relevante |
-| ---------- | ------- | ---------------- |
-| Web (Next.js) | Vercel Hobby | Grátis — **uso não-comercial** |
-| Server (Fastify + WS) | **Render** free | Docker + WebSocket, 750 h/mês — **dorme após 15 min** |
-| PostgreSQL | **Neon** free | 0,5 GB storage, 5 GB transfer/mês, acorda em <500ms |
-| TURN + SFU | Cloudflare Realtime | 1 TB/mês grátis, depois $0,05/GB |
-| Storage / R2 | Cloudflare R2 | 10 GB, **egress zero** |
-| CI/CD | GitHub Actions | Ilimitado em repositório público |
-| Domínio | `*.vercel.app` | Grátis |
+| Componente            | Serviço             | Limite relevante                                      |
+| --------------------- | ------------------- | ----------------------------------------------------- |
+| Web (Next.js)         | Vercel Hobby        | Grátis — **uso não-comercial**                        |
+| Server (Fastify + WS) | **Render** free     | Docker + WebSocket, 750 h/mês — **dorme após 15 min** |
+| PostgreSQL            | **Neon** free       | 0,5 GB storage, 5 GB transfer/mês, acorda em <500ms   |
+| TURN + SFU            | Cloudflare Realtime | 1 TB/mês grátis, depois $0,05/GB                      |
+| Storage / R2          | Cloudflare R2       | 10 GB, **egress zero**                                |
+| CI/CD                 | GitHub Actions      | Ilimitado em repositório público                      |
+| Domínio               | `*.vercel.app`      | Grátis                                                |
 
 ```text
                         INTERNET
@@ -80,17 +80,17 @@ frio espera esse minuto. Chato para uma demo realtime, mas não impeditivo.
 Uma VM **Oracle Cloud Always Free** rodando Fastify + Postgres + coturn via
 Docker Compose. Vercel continua servindo o front.
 
-* 2 OCPU ARM / 12 GB RAM / **10 TB de egress** — always free
-* Sem sleep, sem cold start
-* É exatamente o que o roadmap quer exercitar: Docker, infra, observabilidade
+- 2 OCPU ARM / 12 GB RAM / **10 TB de egress** — always free
+- Sem sleep, sem cold start
+- É exatamente o que o roadmap quer exercitar: Docker, infra, observabilidade
 
 **Ressalvas honestas:**
 
-* A Oracle **cortou esse tier pela metade em junho/2026** (era 4 OCPU / 24 GB),
+- A Oracle **cortou esse tier pela metade em junho/2026** (era 4 OCPU / 24 GB),
   sem anúncio público.
-* Capacidade ARM é disputada em algumas regiões.
-* Existe política de *idle reclaim* — instância ociosa pode ser recuperada.
-* Você vira o sysadmin.
+- Capacidade ARM é disputada em algumas regiões.
+- Existe política de _idle reclaim_ — instância ociosa pode ser recuperada.
+- Você vira o sysadmin.
 
 ---
 
@@ -107,12 +107,12 @@ com free tier.
 
 Erros comuns em tutoriais desatualizados:
 
-| Serviço | Problema |
-| ------- | -------- |
-| **Koyeb** (free) | **Acabou.** Adquirido pela Mistral em fev/2026; o plano Starter gratuito foi removido e novos usuários precisam assinar |
-| **Fly.io** (free) | Free tier acabou. Hoje é trial de 2h de VM ou 7 dias |
-| **Vercel / Netlify** (para o server) | Não sustentam processo vivo — sem WebSocket. Servem só o front |
-| **Supabase** (free) | **Pausa o projeto após 1 semana de inatividade** e derruba a Auth API junto — a demo do portfólio quebra toda vez |
+| Serviço                              | Problema                                                                                                                |
+| ------------------------------------ | ----------------------------------------------------------------------------------------------------------------------- |
+| **Koyeb** (free)                     | **Acabou.** Adquirido pela Mistral em fev/2026; o plano Starter gratuito foi removido e novos usuários precisam assinar |
+| **Fly.io** (free)                    | Free tier acabou. Hoje é trial de 2h de VM ou 7 dias                                                                    |
+| **Vercel / Netlify** (para o server) | Não sustentam processo vivo — sem WebSocket. Servem só o front                                                          |
+| **Supabase** (free)                  | **Pausa o projeto após 1 semana de inatividade** e derruba a Auth API junto — a demo do portfólio quebra toda vez       |
 
 O Neon foi escolhido no lugar do Supabase justamente por isso: ele suspende, mas
 retoma na próxima query.
@@ -121,12 +121,12 @@ retoma na próxima query.
 
 ## ⚠️ Limites — e quando eles quebram
 
-| Limite | Quando vira problema |
-| ------ | -------------------- |
-| Vercel Hobby proíbe uso comercial | No dia em que o projeto monetizar |
-| Neon: 5 GB transfer/mês por projeto | É o teto que aperta primeiro |
-| Neon: 0,5 GB de storage | Muito tempo longe, exceto se guardar blobs no PG (não guarde — use R2) |
-| Cloudflare: 1 TB/mês | **Compartilhado entre TURN e SFU** — não são dois tetos |
+| Limite                              | Quando vira problema                                                   |
+| ----------------------------------- | ---------------------------------------------------------------------- |
+| Vercel Hobby proíbe uso comercial   | No dia em que o projeto monetizar                                      |
+| Neon: 5 GB transfer/mês por projeto | É o teto que aperta primeiro                                           |
+| Neon: 0,5 GB de storage             | Muito tempo longe, exceto se guardar blobs no PG (não guarde — use R2) |
+| Cloudflare: 1 TB/mês                | **Compartilhado entre TURN e SFU** — não são dois tetos                |
 
 ### Dimensionamento do TURN
 
@@ -137,6 +137,35 @@ Teto grátis               = 1.000 GB / mês
 ```
 
 Seriam necessárias centenas de horas de demo por mês para encostar no limite.
+
+### Como o TURN é configurado
+
+O provedor **não está escolhido**, e o código não depende disso. O servidor de
+signaling monta a configuração de ICE e serve em `GET /ice`; o cliente pergunta
+em vez de carregar embutido. Trocar de provedor é mudar variável de ambiente.
+
+| Variável                          | Efeito                                                          |
+| --------------------------------- | --------------------------------------------------------------- |
+| `TURN_URLS`                       | servidores TURN, separados por vírgula. Vazio = só STUN         |
+| `TURN_SECRET`                     | segredo compartilhado — o servidor deriva credencial que expira |
+| `TURN_TTL_SECONDS`                | validade da credencial derivada (padrão 3600)                   |
+| `TURN_USERNAME` / `TURN_PASSWORD` | credencial fixa, para provedor sem segredo compartilhado        |
+
+Os dois modos são mutuamente exclusivos, e o boot recusa a combinação — assim
+como recusa servidor sem credencial e credencial sem servidor.
+
+**Prefira o segredo compartilhado.** É o TURN REST API que o coturn implementa:
+a credencial expira, então uma que vaze não vira banda paga indefinidamente.
+Isso cobre o caminho do Setup B (coturn na VM Oracle) sem código novo.
+
+Para o **Cloudflare Realtime**, a emissão de credencial passa pela API deles, e
+não por segredo compartilhado — é uma terceira estratégia em
+[`apps/server/src/ice.ts`](../apps/server/src/ice.ts), a escrever no dia em que
+o provedor for escolhido. Enquanto isso, credencial fixa funciona.
+
+> O que **não** existe mais: `NEXT_PUBLIC_ICE_SERVERS`. Variável `NEXT_PUBLIC_*`
+> vira texto literal no bundle, e usuário e senha de TURN ficariam legíveis para
+> quem abrisse o DevTools — gastando a banda da sua conta.
 
 ---
 
@@ -171,17 +200,17 @@ signaling.
 
 ## ✅ Checklist — Phase 0
 
-* [ ] Repositório público no GitHub
-* [ ] Conta Vercel (login via GitHub)
-* [ ] Conta Render (sem cartão)
-* [ ] Conta Neon (sem cartão) + connection string
-* [ ] Conta Cloudflare + credenciais TURN
-* [ ] Bucket R2 criado
-* [ ] Deploy do `apps/server` no Render *(primeiro — a Vercel precisa da URL)*
-* [ ] Deploy do `apps/web` na Vercel
-* [ ] Variáveis de ambiente configuradas nos dois
-* [ ] WebSocket conectando de ponta a ponta em produção
-* [ ] GitHub Actions rodando lint + typecheck
+- [ ] Repositório público no GitHub
+- [ ] Conta Vercel (login via GitHub)
+- [ ] Conta Render (sem cartão)
+- [ ] Conta Neon (sem cartão) + connection string
+- [ ] Conta Cloudflare + credenciais TURN
+- [ ] Bucket R2 criado
+- [ ] Deploy do `apps/server` no Render _(primeiro — a Vercel precisa da URL)_
+- [ ] Deploy do `apps/web` na Vercel
+- [ ] Variáveis de ambiente configuradas nos dois
+- [ ] WebSocket conectando de ponta a ponta em produção
+- [ ] GitHub Actions rodando lint + typecheck
 
 > Deployar cedo. Projeto não deployado é projeto que morre.
 
@@ -189,12 +218,12 @@ signaling.
 
 ## 🔗 Fontes
 
-* [Fly.io Free Tier 2026](https://www.saaspricepulse.com/blog/flyio-free-tier-2026)
-* [Platforms with a real free tier for developers in 2026 (Render)](https://render.com/articles/platforms-with-a-real-free-tier-for-developers-in-2026)
-* [Render — Free instance limits (docs oficiais)](https://render.com/docs/free)
-* [Mistral AI buys Koyeb (TechCrunch, fev/2026)](https://techcrunch.com/2026/02/17/mistral-ai-buys-koyeb-in-first-acquisition-to-back-its-cloud-ambitions/)
-* [Cloudflare Realtime — SFU/TURN pricing](https://developers.cloudflare.com/realtime/sfu/pricing)
-* [Oracle Quietly Halves Free Tier Ampere A1 Compute Limits (InfoQ)](https://www.infoq.com/news/2026/07/oracle-cloud-free-tier-limits/)
-* [Oracle Always Free Resources (docs oficiais)](https://docs.oracle.com/en-us/iaas/Content/FreeTier/freetier_topic-Always_Free_Resources.htm)
-* [Database Free Tier Comparison 2026](https://agentdeals.dev/database-free-tier-comparison-2026)
-* [Neon vs Supabase 2026](https://layerbase.com/blog/neon-vs-supabase)
+- [Fly.io Free Tier 2026](https://www.saaspricepulse.com/blog/flyio-free-tier-2026)
+- [Platforms with a real free tier for developers in 2026 (Render)](https://render.com/articles/platforms-with-a-real-free-tier-for-developers-in-2026)
+- [Render — Free instance limits (docs oficiais)](https://render.com/docs/free)
+- [Mistral AI buys Koyeb (TechCrunch, fev/2026)](https://techcrunch.com/2026/02/17/mistral-ai-buys-koyeb-in-first-acquisition-to-back-its-cloud-ambitions/)
+- [Cloudflare Realtime — SFU/TURN pricing](https://developers.cloudflare.com/realtime/sfu/pricing)
+- [Oracle Quietly Halves Free Tier Ampere A1 Compute Limits (InfoQ)](https://www.infoq.com/news/2026/07/oracle-cloud-free-tier-limits/)
+- [Oracle Always Free Resources (docs oficiais)](https://docs.oracle.com/en-us/iaas/Content/FreeTier/freetier_topic-Always_Free_Resources.htm)
+- [Database Free Tier Comparison 2026](https://agentdeals.dev/database-free-tier-comparison-2026)
+- [Neon vs Supabase 2026](https://layerbase.com/blog/neon-vs-supabase)

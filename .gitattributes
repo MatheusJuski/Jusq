@@ -1,2 +1,14 @@
-# Auto detect text files and perform LF normalization
-* text=auto
+# Normalizacao de fim de linha.
+#
+# `eol=lf` e obrigatorio, nao estetico: o Prettier esta configurado com
+# `endOfLine: lf`, e com `core.autocrlf=true` (padrao do Git for Windows) o
+# checkout entregaria CRLF na arvore de trabalho. O `format:check` do CI e do
+# clone novo falharia em todo arquivo, sem nenhuma alteracao real.
+* text=auto eol=lf
+
+# Binarios nao passam por conversao nenhuma.
+*.png binary
+*.jpg binary
+*.ico binary
+*.woff binary
+*.woff2 binary

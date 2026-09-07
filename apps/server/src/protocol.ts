@@ -73,8 +73,7 @@ function parseIceCandidate(value: unknown): RTCIceCandidateInitLike | null {
   return {
     candidate: c['candidate'],
     sdpMid: typeof c['sdpMid'] === 'string' ? c['sdpMid'] : null,
-    sdpMLineIndex:
-      typeof c['sdpMLineIndex'] === 'number' ? c['sdpMLineIndex'] : null,
+    sdpMLineIndex: typeof c['sdpMLineIndex'] === 'number' ? c['sdpMLineIndex'] : null,
     usernameFragment:
       typeof c['usernameFragment'] === 'string' ? c['usernameFragment'] : null,
   };

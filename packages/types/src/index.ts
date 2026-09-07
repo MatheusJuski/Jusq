@@ -78,3 +78,32 @@ export const MAX_PEERS_PER_ROOM = 6;
 
 /** Descarta mensagens absurdas antes de tentar fazer parse. */
 export const MAX_MESSAGE_BYTES = 64 * 1024;
+
+/* -------------------------------------------------------------------------- */
+/* Configuração de ICE                                                        */
+/* -------------------------------------------------------------------------- */
+
+/**
+ * Um servidor ICE, no formato que o `RTCPeerConnection` aceita.
+ *
+ * Declarado aqui e não importado do DOM porque o servidor é quem monta isto,
+ * e ele roda em Node — sem `RTCIceServer`.
+ */
+export interface IceServerConfig {
+  urls: string[];
+  username?: string;
+  credential?: string;
+}
+
+/**
+ * Resposta de `GET /ice`.
+ *
+ * O cliente pede esta configuração ao servidor em vez de carregá-la embutida
+ * no bundle. O motivo é credencial: TURN exige usuário e senha, e qualquer
+ * coisa embutida no JavaScript da página é pública por definição.
+ */
+export interface IceConfigResponse {
+  iceServers: IceServerConfig[];
+  /** Segundos até a credencial expirar. `null` quando não expira. */
+  ttl: number | null;
+}

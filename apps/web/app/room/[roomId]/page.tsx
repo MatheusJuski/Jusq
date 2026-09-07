@@ -15,11 +15,7 @@ import {
   deviceValue,
   listAudioInputs,
 } from '@/lib/audio-source';
-import {
-  RemoteStreamPanel,
-  StreamVideo,
-  VideoPanel,
-} from '@/components/stream-panel';
+import { RemoteStreamPanel, StreamVideo, VideoPanel } from '@/components/stream-panel';
 
 /** Valor sentinela do `<select>`: aciona a busca em vez de virar seleção. */
 const DETECT_DEVICES = '__detect__';
@@ -284,9 +280,7 @@ export default function RoomPage() {
             aria-hidden
             className="mt-1.5 size-1.5 shrink-0 rounded-full bg-lilac-soft"
           />
-          <p className="flex-1 text-[13px] leading-relaxed text-sky/85">
-            {notice}
-          </p>
+          <p className="flex-1 text-[13px] leading-relaxed text-sky/85">{notice}</p>
           <button
             type="button"
             onClick={() => setNotice(null)}
@@ -352,9 +346,8 @@ export default function RoomPage() {
       </div>
 
       <p className="max-w-2xl text-[12px] leading-relaxed text-denim/60">
-        V0 sem TURN, sem persistência, sem reconexão. Se a conexão falhar
-        entre redes diferentes, é o NAT: é exatamente esse problema que
-        justifica o TURN na Phase 1.
+        V0 sem TURN, sem persistência, sem reconexão. Se a conexão falhar entre redes
+        diferentes, é o NAT: é exatamente esse problema que justifica o TURN na Phase 1.
       </p>
     </div>
   );

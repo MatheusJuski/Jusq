@@ -43,9 +43,9 @@ testar.
 
 ## Pré-requisitos
 
-* Conta no GitHub
-* O projeto commitado localmente
-* Nenhum cartão de crédito
+- Conta no GitHub
+- O projeto commitado localmente
+- Nenhum cartão de crédito
 
 ---
 
@@ -54,9 +54,9 @@ testar.
 O Render e a Vercel puxam direto do repositório.
 
 1. Crie um repositório em <https://github.com/new>
-   * Nome: `jusqs`
-   * Visibilidade: **público** (o GitHub Actions fica ilimitado assim)
-   * **Não** marque nada em "Initialize this repository"
+   - Nome: `jusqs`
+   - Visibilidade: **público** (o GitHub Actions fica ilimitado assim)
+   - **Não** marque nada em "Initialize this repository"
 
 2. No terminal, na raiz do projeto:
 
@@ -94,19 +94,19 @@ qual formulário aparece.
 
 Ambas foram testadas e produzem o mesmo binário. Escolha uma.
 
-#### Opção A — Docker *(recomendada)*
+#### Opção A — Docker _(recomendada)_
 
-| Campo | Valor |
-| ----- | ----- |
-| Name | `jusqs-server` |
-| **Language** | **Docker** |
-| Branch | `main` |
-| Region | qualquer |
-| Root Directory | *(vazio)* |
-| **Dockerfile Path** | `./apps/server/Dockerfile` |
-| **Docker Build Context Directory** | `.` |
-| Instance Type | **Free** ($0, 0.1 CPU, 512 MB) |
-| Health Check Path | `/health` |
+| Campo                              | Valor                          |
+| ---------------------------------- | ------------------------------ |
+| Name                               | `jusqs-server`                 |
+| **Language**                       | **Docker**                     |
+| Branch                             | `main`                         |
+| Region                             | qualquer                       |
+| Root Directory                     | _(vazio)_                      |
+| **Dockerfile Path**                | `./apps/server/Dockerfile`     |
+| **Docker Build Context Directory** | `.`                            |
+| Instance Type                      | **Free** ($0, 0.1 CPU, 512 MB) |
+| Health Check Path                  | `/health`                      |
 
 > **Build Context precisa ser `.` (a raiz do repo).** O Dockerfile depende de
 > `pnpm-lock.yaml`, `pnpm-workspace.yaml` e `packages/types`, que ficam fora de
@@ -120,26 +120,26 @@ qualquer falha localmente (ver o fim deste documento).
 Se o formulário mostrar **Build Command** e **Start Command**, o `Language`
 está como Node. Nesse caso use:
 
-| Campo | Valor |
-| ----- | ----- |
-| Name | `jusqs-server` |
-| **Language** | **Node** |
-| Branch | `main` |
-| Region | qualquer |
-| Root Directory | *(vazio)* |
+| Campo             | Valor                                                                                           |
+| ----------------- | ----------------------------------------------------------------------------------------------- |
+| Name              | `jusqs-server`                                                                                  |
+| **Language**      | **Node**                                                                                        |
+| Branch            | `main`                                                                                          |
+| Region            | qualquer                                                                                        |
+| Root Directory    | _(vazio)_                                                                                       |
 | **Build Command** | `pnpm install --frozen-lockfile --filter @jusqs/server... && pnpm --filter @jusqs/server build` |
-| **Start Command** | `node apps/server/dist/index.js` |
-| Instance Type | **Free** ($0, 0.1 CPU, 512 MB) |
-| Health Check Path | `/health` |
+| **Start Command** | `node apps/server/dist/index.js`                                                                |
+| Instance Type     | **Free** ($0, 0.1 CPU, 512 MB)                                                                  |
+| Health Check Path | `/health`                                                                                       |
 
 Três detalhes que importam:
 
-* **Root Directory vazio.** Apontar para `apps/server` esconde o
+- **Root Directory vazio.** Apontar para `apps/server` esconde o
   `pnpm-workspace.yaml` e o `packages/types`, e o build quebra.
-* **`--filter @jusqs/server...`** — as reticências não são erro de digitação.
+- **`--filter @jusqs/server...`** — as reticências não são erro de digitação.
   Elas mandam o pnpm instalar o servidor **e suas dependências de workspace**
   (`packages/types`), pulando o Next.js e o app web.
-* O Start Command padrão sugerido pelo Render (`yarn start`) **não serve** —
+- O Start Command padrão sugerido pelo Render (`yarn start`) **não serve** —
   este projeto usa pnpm e o entrypoint está em `apps/server/dist/`.
 
 ### 2.3 Porta e variáveis de ambiente
@@ -151,17 +151,17 @@ processo.
 
 Em **Environment Variables**, adicione:
 
-| Name | Value | Quando |
-| ---- | ----- | ------ |
-| `PORT` | `10000` | **sempre** |
+| Name          | Value                          | Quando        |
+| ------------- | ------------------------------ | ------------- |
+| `PORT`        | `10000`                        | **sempre**    |
 | `CORS_ORIGIN` | `https://<seu-app>.vercel.app` | só na Parte 4 |
 
 Sobre `NODE_ENV`: **não precisa configurar**.
 
-* Na Opção A (Docker), o próprio Dockerfile define `NODE_ENV=production` — o
-  Render *não* define isso para serviços Docker.
-* Na Opção B (Node), o Render define automaticamente.
-* E o servidor sobe corretamente mesmo sem a variável: ele decide o formato de
+- Na Opção A (Docker), o próprio Dockerfile define `NODE_ENV=production` — o
+  Render _não_ define isso para serviços Docker.
+- Na Opção B (Node), o Render define automaticamente.
+- E o servidor sobe corretamente mesmo sem a variável: ele decide o formato de
   log por disponibilidade do `pino-pretty`, não por `NODE_ENV`.
 
 > Esse último ponto existe porque a versão anterior **quebrava no boot** sem
@@ -205,11 +205,11 @@ normal no plano free.
 
 ### 3.1 Configurar
 
-| Campo | Valor |
-| ----- | ----- |
-| Framework Preset | Next.js *(detectado)* |
-| **Root Directory** | **`apps/web`** |
-| Build / Install Command | *(deixe o padrão)* |
+| Campo                   | Valor                 |
+| ----------------------- | --------------------- |
+| Framework Preset        | Next.js _(detectado)_ |
+| **Root Directory**      | **`apps/web`**        |
+| Build / Install Command | _(deixe o padrão)_    |
 
 > **Root Directory é o campo crítico.** Sem ele a Vercel tenta buildar a raiz do
 > monorepo e falha. Ao definir `apps/web`, ela ainda instala a partir da raiz —
@@ -219,22 +219,22 @@ normal no plano free.
 
 Antes de clicar em Deploy, abra **Environment Variables**:
 
-| Campo | Valor |
-| ----- | ----- |
-| **Type** | **Config** *(não Secret)* |
-| Key | `NEXT_PUBLIC_SIGNALING_URL` |
-| Value | `wss://<sua-url-do-render>/ws` |
+| Campo        | Valor                            |
+| ------------ | -------------------------------- |
+| **Type**     | **Config** _(não Secret)_        |
+| Key          | `NEXT_PUBLIC_SIGNALING_URL`      |
+| Value        | `wss://<sua-url-do-render>/ws`   |
 | Environments | Production, Preview, Development |
 
 Quatro detalhes que quebram silenciosamente:
 
-* **Type = Config.** A Vercel recusa `NEXT_PUBLIC_*` como *Secret*, e com razão:
+- **Type = Config.** A Vercel recusa `NEXT_PUBLIC_*` como _Secret_, e com razão:
   esse prefixo embute o valor no JavaScript entregue ao browser — ele é público
   por definição. Marcar como Secret prometeria um sigilo que não existe.
-* **`wss://`**, não `ws://` — página HTTPS não abre WebSocket inseguro (o
+- **`wss://`**, não `ws://` — página HTTPS não abre WebSocket inseguro (o
   browser bloqueia como conteúdo misto). É só um `s`, e é o erro mais comum.
-* O sufixo **`/ws`** é obrigatório, é a rota do servidor.
-* `NEXT_PUBLIC_*` é embutida **no build**; mudar depois exige **redeploy**.
+- O sufixo **`/ws`** é obrigatório, é a rota do servidor.
+- `NEXT_PUBLIC_*` é embutida **no build**; mudar depois exige **redeploy**.
 
 > Use a URL real do seu serviço no Render, copiada do dashboard dele.
 > `jusqs-server.onrender.com` neste documento é só exemplo.
@@ -256,8 +256,8 @@ primeiro (Parte 2), Vercel depois (Parte 3), e agora voltamos ao Render.
 
 No Render, em **Environment** → **Add Environment Variable**, adicione:
 
-| Name | Value |
-| ---- | ----- |
+| Name          | Value                             |
+| ------------- | --------------------------------- |
 | `CORS_ORIGIN` | `https://jusqs-<algo>.vercel.app` |
 
 Redeploy o serviço.
@@ -285,12 +285,12 @@ A Phase 0 está concluída. O critério era exatamente esse.
 
 Olhe a tabela **WEBRTC** na página. Ela responde qual é o problema:
 
-| Sintoma na tabela | Significado | O que fazer |
-| ----------------- | ----------- | ----------- |
-| `RECEBIDO` cresce, tela preta | mídia chega, não desenha | clique no vídeo (autoplay) |
-| `CONN` = `failed`, `PAR` = `—` | ICE não achou caminho | **é NAT — precisa de TURN** |
-| `CONN` = `connected`, `RECEBIDO` = 0 | negociou, ninguém envia | os dois transmitindo? (glare) |
-| `PEERS 0` | signaling não conectou | veja "Problemas comuns" |
+| Sintoma na tabela                    | Significado              | O que fazer                   |
+| ------------------------------------ | ------------------------ | ----------------------------- |
+| `RECEBIDO` cresce, tela preta        | mídia chega, não desenha | clique no vídeo (autoplay)    |
+| `CONN` = `failed`, `PAR` = `—`       | ICE não achou caminho    | **é NAT — precisa de TURN**   |
+| `CONN` = `connected`, `RECEBIDO` = 0 | negociou, ninguém envia  | os dois transmitindo? (glare) |
+| `PEERS 0`                            | signaling não conectou   | veja "Problemas comuns"       |
 
 ---
 
@@ -349,9 +349,9 @@ root foi desativada.
 
 Abra o console do browser (F12). Erro de WebSocket costuma ser:
 
-* `ws://` no lugar de `wss://`
-* falta do `/ws` no fim da URL
-* a variável foi criada **depois** do build (`NEXT_PUBLIC_*` é embutida no
+- `ws://` no lugar de `wss://`
+- falta do `/ws` no fim da URL
+- a variável foi criada **depois** do build (`NEXT_PUBLIC_*` é embutida no
   build — refaça o deploy)
 
 ### Primeira conexão demora ~1 minuto
@@ -380,8 +380,8 @@ Ambas as plataformas observam o `main`:
 git push
 ```
 
-* Vercel: redeploy automático
-* Render: redeploy automático
+- Vercel: redeploy automático
+- Render: redeploy automático
 
 Mudou uma variável `NEXT_PUBLIC_*`? **Precisa de redeploy** — ela é embutida no
 build, não lida em runtime.

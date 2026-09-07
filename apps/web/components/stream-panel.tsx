@@ -5,12 +5,32 @@ import {
   useEffect,
   useRef,
   useState,
+  useSyncExternalStore,
   type RefObject,
 } from 'react';
 
 /* -------------------------------------------------------------------------- */
 /* Hooks de exibição                                                          */
 /* -------------------------------------------------------------------------- */
+
+/** A capacidade do browser não muda em runtime: nada para assinar. */
+const neverChanges = () => () => undefined;
+
+/**
+ * Lê uma capacidade do browser sem arriscar divergência de hidratação.
+ *
+ * No servidor não existe `document`, e ler durante a renderização produziria
+ * uma marcação diferente da do cliente. `useSyncExternalStore` é o caminho que
+ * o React oferece para exatamente isso: um snapshot para o servidor (`false`,
+ * o valor conservador) e outro para o cliente.
+ *
+ * A alternativa — `useState(false)` mais `useEffect(setSupported)` — funciona,
+ * mas custa um render extra em cascata a cada montagem e é justamente o padrão
+ * que `react-hooks/set-state-in-effect` sinaliza.
+ */
+function useBrowserCapability(read: () => boolean): boolean {
+  return useSyncExternalStore(neverChanges, read, () => false);
+}
 
 /**
  * Tela cheia sobre um elemento qualquer.
@@ -20,11 +40,7 @@ import {
  */
 function useFullscreen(ref: RefObject<HTMLElement | null>) {
   const [active, setActive] = useState(false);
-  const [supported, setSupported] = useState(false);
-
-  // Só depois da montagem: no servidor não existe `document`, e checar durante
-  // a renderização causaria divergência de hidratação.
-  useEffect(() => setSupported(document.fullscreenEnabled), []);
+  const supported = useBrowserCapability(() => document.fullscreenEnabled);
 
   useEffect(() => {
     // O usuário pode sair com ESC, sem passar pelo nosso botão.
@@ -55,9 +71,7 @@ function useFullscreen(ref: RefObject<HTMLElement | null>) {
  */
 function usePictureInPicture(ref: RefObject<HTMLVideoElement | null>) {
   const [active, setActive] = useState(false);
-  const [supported, setSupported] = useState(false);
-
-  useEffect(() => setSupported(document.pictureInPictureEnabled), []);
+  const supported = useBrowserCapability(() => document.pictureInPictureEnabled);
 
   useEffect(() => {
     const video = ref.current;
@@ -145,9 +159,7 @@ export function VideoPanel({
       className="overflow-hidden rounded-card border border-line bg-surface/70"
     >
       <div className="flex items-center justify-between gap-3 px-4 py-2.5">
-        <span className="shrink-0 font-mono text-[12px] text-denim">
-          {label}
-        </span>
+        <span className="shrink-0 font-mono text-[12px] text-denim">{label}</span>
         <div className="flex items-center gap-2">
           {action}
           <span

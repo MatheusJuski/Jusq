@@ -1,28 +1,78 @@
+import type { IceConfigResponse } from '@jusqs/types';
+
 /**
- * Configuração de ICE.
+ * STUN público. É o que resta quando o servidor não responde.
  *
- * V0 usa apenas STUN público — suficiente para a maioria das redes domésticas.
- * Em NAT simétrico e redes corporativas isso falha, e é exatamente essa falha
- * que justifica adicionar TURN na Phase 1 (Regra 1: nenhuma tecnologia sem
- * motivo). Não adicione TURN antes de ver a conexão falhar.
+ * Suficiente na maioria das redes domésticas; falha em NAT simétrico e em rede
+ * corporativa — que é o problema que o TURN resolve.
  */
-export function getIceServers(): RTCIceServer[] {
-  const servers: RTCIceServer[] = [
-    { urls: 'stun:stun.l.google.com:19302' },
-    { urls: 'stun:stun1.l.google.com:19302' },
-  ];
+const FALLBACK_STUN: RTCIceServer[] = [
+  { urls: 'stun:stun.l.google.com:19302' },
+  { urls: 'stun:stun1.l.google.com:19302' },
+];
 
-  const extra = process.env.NEXT_PUBLIC_ICE_SERVERS;
-  if (!extra) return servers;
-
+/**
+ * Busca a configuração de ICE no servidor de signaling.
+ *
+ * ## Por que não vem do ambiente do build
+ *
+ * Até a Phase 1 isto era `NEXT_PUBLIC_ICE_SERVERS`, um JSON embutido no bundle.
+ * Para STUN, tudo bem. Para TURN, não: `NEXT_PUBLIC_*` é substituído como texto
+ * literal no JavaScript da página, e usuário e senha de TURN ficariam legíveis
+ * para qualquer pessoa que abrisse o DevTools — usando banda paga.
+ *
+ * O servidor monta a lista, e as credenciais que ele emite expiram.
+ *
+ * ## Por que nunca rejeita
+ *
+ * Perder o TURN degrada a conexão em rede difícil. Perder a sala inteira porque
+ * um `fetch` falhou seria pior. Qualquer falha aqui cai no STUN público, que é
+ * o comportamento que a Phase 0 já tinha.
+ */
+export async function fetchIceServers(): Promise<RTCIceServer[]> {
+  let endpoint: string;
   try {
-    const parsed: unknown = JSON.parse(extra);
-    if (Array.isArray(parsed)) servers.push(...(parsed as RTCIceServer[]));
+    endpoint = getIceEndpoint();
   } catch {
-    console.warn('NEXT_PUBLIC_ICE_SERVERS não é JSON válido; ignorando.');
+    return FALLBACK_STUN;
   }
 
-  return servers;
+  try {
+    const response = await fetch(endpoint, { cache: 'no-store' });
+    if (!response.ok) return FALLBACK_STUN;
+
+    const config = (await response.json()) as IceConfigResponse;
+    const servers = config.iceServers;
+
+    // Resposta vazia ou de formato inesperado é indistinguível de servidor
+    // antigo. Em qualquer um dos casos o STUN público serve.
+    if (!Array.isArray(servers) || servers.length === 0) return FALLBACK_STUN;
+
+    // `IceServerConfig` é estruturalmente um `RTCIceServer`: sem conversão.
+    return servers;
+  } catch {
+    return FALLBACK_STUN;
+  }
+}
+
+/**
+ * Deriva `.../ice` a partir da URL de signaling.
+ *
+ * Uma variável só, e não duas: separar `NEXT_PUBLIC_SIGNALING_URL` de uma
+ * `NEXT_PUBLIC_API_URL` cria a chance de apontarem para servidores diferentes
+ * — e o sintoma disso é credencial de TURN de um servidor sendo usada contra
+ * outro, meses depois, em rede que ninguém consegue reproduzir.
+ */
+export function getIceEndpoint(): string {
+  const url = new URL(getSignalingUrl());
+  url.protocol = url.protocol === 'wss:' ? 'https:' : 'http:';
+
+  // As duas trocas são necessárias: tirar o `/ws` deixa a raiz como `/`, e
+  // concatenar `/ice` nela produziria `//ice` — que o Fastify serve como 404.
+  const base = url.pathname.replace(/\/ws\/?$/, '').replace(/\/+$/, '');
+  url.pathname = `${base}/ice`;
+
+  return url.toString();
 }
 
 /**

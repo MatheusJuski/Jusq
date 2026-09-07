@@ -16,11 +16,7 @@ export const metadata: Metadata = {
     'A personal playground for realtime systems, games, simulations and digital experiments.',
 };
 
-export default function RootLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="pt-BR" className={poppins.variable}>
       <body className="relative">

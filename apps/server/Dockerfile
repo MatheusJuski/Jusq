@@ -18,10 +18,14 @@ WORKDIR /repo
 # mudam, não a cada alteração de código.
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
 COPY apps/server/package.json ./apps/server/
+COPY packages/config/package.json ./packages/config/
+COPY packages/logger/package.json ./packages/logger/
 COPY packages/types/package.json ./packages/types/
 
 RUN pnpm install --frozen-lockfile --filter @jusqs/server...
 
+COPY packages/config ./packages/config
+COPY packages/logger ./packages/logger
 COPY packages/types ./packages/types
 COPY apps/server ./apps/server
 

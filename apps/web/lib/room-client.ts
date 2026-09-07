@@ -7,7 +7,7 @@ import type {
   SignalPayload,
 } from '@jusqs/types';
 
-import { getIceServers, getSignalingUrl } from './ice';
+import { fetchIceServers, getSignalingUrl } from './ice';
 import {
   AUDIO_SOURCE_MICROPHONE,
   AUDIO_SOURCE_NONE,
@@ -26,12 +26,7 @@ import {
   type QualityPreset,
 } from './quality';
 
-export type ConnectionStatus =
-  | 'idle'
-  | 'connecting'
-  | 'connected'
-  | 'closed'
-  | 'error';
+export type ConnectionStatus = 'idle' | 'connecting' | 'connected' | 'closed' | 'error';
 
 export interface RoomClientHandlers {
   onStatus(status: ConnectionStatus): void;
@@ -160,6 +155,12 @@ export class RoomClient {
   #localStream: MediaStream | null = null;
   #disposed = false;
 
+  /**
+   * Preenchido antes do `join`, e por isso já disponível quando o primeiro
+   * peer aparece. Ver `connect`.
+   */
+  #iceServers: RTCIceServer[] = [];
+
   constructor(roomId: RoomId, handlers: RoomClientHandlers) {
     this.#roomId = roomId;
     this.#handlers = handlers;
@@ -178,18 +179,30 @@ export class RoomClient {
     } catch (error) {
       // Configuração inválida não é falha de rede: sem isso o erro apareceria como "WebSocket failed" apontando para a própria página.
       this.#handlers.onStatus('error');
-      this.#handlers.onError(
-        error instanceof Error ? error.message : String(error),
-      );
+      this.#handlers.onError(error instanceof Error ? error.message : String(error));
       return;
     }
+
+    // Disparado junto com o handshake, não depois: os dois correm em paralelo
+    // e o custo do `fetch` some dentro do tempo de abrir o WebSocket.
+    // `fetchIceServers` nunca rejeita — no pior caso devolve o STUN público.
+    const iceServers = fetchIceServers();
 
     const socket = new WebSocket(url);
     this.#socket = socket;
 
     socket.addEventListener('open', () => {
-      this.#send({ type: 'join', roomId: this.#roomId });
-      this.#handlers.onStatus('connected');
+      // O `join` espera o ICE porque a resposta dele já traz peers, e cada peer
+      // vira um `RTCPeerConnection` na hora. Entrar antes da configuração
+      // chegar criaria as primeiras conexões sem TURN — e a falha apareceria
+      // só em rede difícil, exatamente onde o TURN faz falta.
+      void iceServers.then((servers) => {
+        if (this.#disposed || this.#socket !== socket) return;
+
+        this.#iceServers = servers;
+        this.#send({ type: 'join', roomId: this.#roomId });
+        this.#handlers.onStatus('connected');
+      });
     });
 
     socket.addEventListener('message', (event: MessageEvent<string>) => {
@@ -386,10 +399,7 @@ export class RoomClient {
       });
 
       // Um stream só, para que `stopSharing` encerre tudo de uma vez.
-      return new MediaStream([
-        ...video.getVideoTracks(),
-        ...audio.getAudioTracks(),
-      ]);
+      return new MediaStream([...video.getVideoTracks(), ...audio.getAudioTracks()]);
     } catch (error) {
       this.#handlers.onError(
         `${deviceId ? 'o dispositivo de áudio escolhido' : 'o microfone'} não ` +
@@ -516,12 +526,10 @@ export class RoomClient {
     const state = this.#peers.get(peerId);
     if (!state) return;
 
-    state.queue = state.queue
-      .then(work)
-      .catch((error: unknown) => {
-        const detail = error instanceof Error ? error.message : String(error);
-        this.#handlers.onError(`negociação com ${peerId.slice(0, 8)}: ${detail}`);
-      });
+    state.queue = state.queue.then(work).catch((error: unknown) => {
+      const detail = error instanceof Error ? error.message : String(error);
+      this.#handlers.onError(`negociação com ${peerId.slice(0, 8)}: ${detail}`);
+    });
   }
 
   #handleServerMessage(message: ServerMessage): void {
@@ -642,7 +650,7 @@ export class RoomClient {
     const existing = this.#peers.get(peerId);
     if (existing) return existing;
 
-    const pc = new RTCPeerConnection({ iceServers: getIceServers() });
+    const pc = new RTCPeerConnection({ iceServers: this.#iceServers });
     const state: PeerState = {
       pc,
       pendingIce: [],
@@ -780,10 +788,14 @@ export class RoomClient {
    *
    *   await jusqs.measureBitrates()
    */
-  async measureBitrates(
-    seconds = 5,
-  ): Promise<
-    { peerId: PeerId; audioIn: string; audioOut: string; videoIn: string; videoOut: string }[]
+  async measureBitrates(seconds = 5): Promise<
+    {
+      peerId: PeerId;
+      audioIn: string;
+      audioOut: string;
+      videoIn: string;
+      videoOut: string;
+    }[]
   > {
     const kbps = (bytes: number): string =>
       `${Math.round((bytes * 8) / seconds / 1000)} kbps`;
@@ -842,7 +854,9 @@ export class RoomClient {
         const candidates = new Map<string, string>();
         let pair: RTCIceCandidatePairStats | null = null;
 
-        stats.forEach((report) => {
+        // `RTCStatsReport.forEach` entrega `any` na lib do DOM. Anotar aqui
+        // é o que faz o `switch` abaixo ser verificado de verdade.
+        stats.forEach((report: RTCStats) => {
           switch (report.type) {
             case 'local-candidate':
             case 'remote-candidate': {
