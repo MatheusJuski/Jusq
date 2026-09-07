@@ -16,6 +16,18 @@ export type PeerId = string;
 /** Identificador de uma sala. É o que vai na URL compartilhável. */
 export type RoomId = string;
 
+/**
+ * Um participante como os outros o veem.
+ *
+ * O `id` é do servidor e não muda; o `name` é escolhido por quem entra e pode
+ * mudar a qualquer momento. Os dois andam juntos porque o nome sozinho não
+ * identifica — duas pessoas podem escolher o mesmo.
+ */
+export interface PeerInfo {
+  id: PeerId;
+  name: string;
+}
+
 /* -------------------------------------------------------------------------- */
 /* Payload WebRTC                                                             */
 /* -------------------------------------------------------------------------- */
@@ -43,7 +55,9 @@ export interface RTCIceCandidateInitLike {
 
 export type ClientMessage =
   /** Primeira mensagem do socket. Entra na sala e recebe a lista de peers. */
-  | { type: 'join'; roomId: RoomId }
+  | { type: 'join'; roomId: RoomId; name: string }
+  /** Troca o nome durante a sessão, sem reconectar. */
+  | { type: 'rename'; name: string }
   /** Encaminha um payload WebRTC para um peer específico da mesma sala. */
   | { type: 'signal'; to: PeerId; payload: SignalPayload };
 
@@ -59,9 +73,10 @@ export type ServerMessage =
    * passivo — quem já estava é que inicia a oferta. Isso evita glare
    * (dois lados ofertando ao mesmo tempo) sem precisar de perfect negotiation.
    */
-  | { type: 'joined'; peerId: PeerId; roomId: RoomId; peers: PeerId[] }
-  | { type: 'peer-joined'; peerId: PeerId }
+  | { type: 'joined'; peerId: PeerId; roomId: RoomId; peers: PeerInfo[] }
+  | { type: 'peer-joined'; peer: PeerInfo }
   | { type: 'peer-left'; peerId: PeerId }
+  | { type: 'peer-renamed'; peerId: PeerId; name: string }
   | { type: 'signal'; from: PeerId; payload: SignalPayload }
   | { type: 'error'; message: string };
 
@@ -78,6 +93,18 @@ export const MAX_PEERS_PER_ROOM = 6;
 
 /** Descarta mensagens absurdas antes de tentar fazer parse. */
 export const MAX_MESSAGE_BYTES = 64 * 1024;
+
+/**
+ * Limite do nome exibido.
+ *
+ * Curto de propósito: o nome aparece no cabeçalho de um painel de vídeo, ao
+ * lado dos controles. Um nome longo não é só feio — ele empurra os botões de
+ * som e tela cheia para fora da tela.
+ */
+export const MAX_PEER_NAME_LENGTH = 24;
+
+/** Nome de quem não escolheu nenhum. */
+export const DEFAULT_PEER_NAME = 'anônimo';
 
 /* -------------------------------------------------------------------------- */
 /* Configuração de ICE                                                        */

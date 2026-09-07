@@ -1,4 +1,4 @@
-import type { PeerId, RoomId, ServerMessage } from '@jusqs/types';
+import type { PeerId, PeerInfo, RoomId, ServerMessage } from '@jusqs/types';
 import { MAX_PEERS_PER_ROOM } from '@jusqs/types';
 
 /**
@@ -10,10 +10,13 @@ import { MAX_PEERS_PER_ROOM } from '@jusqs/types';
 export interface Peer {
   readonly id: PeerId;
   readonly roomId: RoomId;
+  /** Escolhido por quem entra, e mutável durante a sessão. */
+  name: string;
   send(message: ServerMessage): void;
 }
 
-export type JoinResult = { ok: true; peers: PeerId[] } | { ok: false; reason: string };
+export type JoinResult =
+  { ok: true; peers: PeerInfo[] } | { ok: false; reason: string };
 
 /**
  * Registro de salas em memória.
@@ -42,7 +45,10 @@ export class RoomRegistry {
     }
 
     // Capturado ANTES da inserção: quem chega não deve se ver na lista.
-    const existing = [...room.keys()];
+    const existing: PeerInfo[] = [...room.values()].map((p) => ({
+      id: p.id,
+      name: p.name,
+    }));
 
     room.set(peer.id, peer);
     this.#peerRoom.set(peer.id, peer.roomId);
@@ -63,6 +69,23 @@ export class RoomRegistry {
       if (room.size === 0) this.#rooms.delete(roomId);
     }
 
+    return roomId;
+  }
+
+  /**
+   * Troca o nome de um peer já na sala.
+   *
+   * Devolve a sala para quem chamou avisar os outros — o registro não fala com
+   * ninguém por conta própria.
+   */
+  rename(peerId: PeerId, name: string): RoomId | undefined {
+    const roomId = this.#peerRoom.get(peerId);
+    if (roomId === undefined) return undefined;
+
+    const peer = this.#rooms.get(roomId)?.get(peerId);
+    if (!peer) return undefined;
+
+    peer.name = name;
     return roomId;
   }
 

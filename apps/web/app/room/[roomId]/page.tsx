@@ -1,9 +1,10 @@
 'use client';
 
 import { useParams } from 'next/navigation';
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState, useSyncExternalStore } from 'react';
 
-import type { PeerId } from '@jusqs/types';
+import type { PeerId, PeerInfo } from '@jusqs/types';
+import { MAX_PEER_NAME_LENGTH } from '@jusqs/types';
 
 import { RoomClient, type ConnectionStatus } from '@/lib/room-client';
 import { DEFAULT_QUALITY_ID, QUALITY_PRESETS } from '@/lib/quality';
@@ -16,6 +17,14 @@ import {
   listAudioInputs,
 } from '@/lib/audio-source';
 import { RemoteStreamPanel, StreamVideo, VideoPanel } from '@/components/stream-panel';
+import {
+  nameOrDefault,
+  normalizeName,
+  readStoredName,
+  serverName,
+  storeName,
+  subscribeToName,
+} from '@/lib/peer-name';
 
 /** Valor sentinela do `<select>`: aciona a busca em vez de virar seleção. */
 const DETECT_DEVICES = '__detect__';
@@ -51,7 +60,20 @@ export default function RoomPage() {
   const clientRef = useRef<RoomClient | null>(null);
 
   const [status, setStatus] = useState<ConnectionStatus>('idle');
-  const [peers, setPeers] = useState<PeerId[]>([]);
+  const [peers, setPeers] = useState<PeerInfo[]>([]);
+
+  /**
+   * Nome salvo, lido direto do armazenamento.
+   *
+   * `useSyncExternalStore` porque o valor mora fora do React: dá vazio no
+   * servidor (onde não existe `localStorage`) e o valor real no cliente, sem
+   * o render em cascata de um `useEffect` que chama `setState`.
+   */
+  const name = useSyncExternalStore(subscribeToName, readStoredName, serverName);
+
+  /** Enquanto edita, o campo é livre; só o "salvar" toca no armazenamento. */
+  const [draft, setDraft] = useState<string | null>(null);
+
   const [localStream, setLocalStream] = useState<MediaStream | null>(null);
   const [remoteStreams, setRemoteStreams] = useState<Map<PeerId, MediaStream>>(
     new Map(),
@@ -114,21 +136,27 @@ export default function RoomPage() {
   useEffect(() => {
     if (!roomId) return;
 
-    const client = new RoomClient(roomId, {
-      onStatus: setStatus,
-      onPeersChange: setPeers,
-      onLocalStream: setLocalStream,
-      onError: reportError,
-      onNotice: setNotice,
-      onRemoteStream: (peerId, stream) =>
-        setRemoteStreams((prev) => new Map(prev).set(peerId, stream)),
-      onRemoteStreamEnded: (peerId) =>
-        setRemoteStreams((prev) => {
-          const next = new Map(prev);
-          next.delete(peerId);
-          return next;
-        }),
-    });
+    const client = new RoomClient(
+      roomId,
+      {
+        onStatus: setStatus,
+        onPeersChange: setPeers,
+        onLocalStream: setLocalStream,
+        onError: reportError,
+        onNotice: setNotice,
+        onRemoteStream: (peerId, stream) =>
+          setRemoteStreams((prev) => new Map(prev).set(peerId, stream)),
+        onRemoteStreamEnded: (peerId) =>
+          setRemoteStreams((prev) => {
+            const next = new Map(prev);
+            next.delete(peerId);
+            return next;
+          }),
+        // Lido do armazenamento em vez do estado: este efeito roda uma vez por
+        // sala, e depender de `name` reconectaria a cada letra digitada.
+      },
+      nameOrDefault(readStoredName()),
+    );
 
     clientRef.current = client;
     client.connect();
@@ -149,6 +177,23 @@ export default function RoomPage() {
       delete (window as unknown as { jusqs?: RoomClient }).jusqs;
     };
   }, [roomId, reportError]);
+
+  /**
+   * Aplica o nome escolhido.
+   *
+   * Guarda antes de enviar: se a conexão cair no meio, a preferência já está
+   * salva para a próxima visita. `nameOrDefault` garante que nome vazio vire
+   * o padrão em vez de sumir do painel dos outros.
+   */
+  const applyName = useCallback((value: string) => {
+    const clean = normalizeName(value);
+
+    // Guardar antes de enviar: se a conexão cair no meio, a preferência já
+    // está salva para a próxima visita.
+    storeName(clean);
+    clientRef.current?.setName(nameOrDefault(clean));
+    setDraft(null);
+  }, []);
 
   const copyLink = useCallback(() => {
     void navigator.clipboard.writeText(window.location.href).then(() => {
@@ -184,6 +229,41 @@ export default function RoomPage() {
           <span className="text-denim/70">
             {peers.length} {peers.length === 1 ? 'peer' : 'peers'}
           </span>
+
+          <span className="h-4 w-px bg-line" />
+
+          {draft === null ? (
+            <button
+              type="button"
+              onClick={() => setDraft(name)}
+              title="Clique para mudar seu nome"
+              className="cursor-pointer rounded-full border border-transparent px-2.5 py-1 transition-colors hover:border-line hover:text-sky"
+            >
+              {name || <span className="text-denim/70">definir nome</span>}
+            </button>
+          ) : (
+            <form
+              onSubmit={(event) => {
+                event.preventDefault();
+                applyName(draft);
+              }}
+            >
+              <input
+                autoFocus
+                value={draft}
+                maxLength={MAX_PEER_NAME_LENGTH}
+                placeholder="seu nome"
+                aria-label="Seu nome na sala"
+                onChange={(event) => setDraft(normalizeName(event.target.value))}
+                onBlur={() => applyName(draft)}
+                // Esc desiste: o nome salvo permanece como estava.
+                onKeyDown={(event) => {
+                  if (event.key === 'Escape') setDraft(null);
+                }}
+                className="w-36 rounded-full border border-lilac/60 bg-ink px-3 py-1 outline-none"
+              />
+            </form>
+          )}
         </div>
 
         <div className="flex flex-wrap items-center gap-2">
@@ -295,7 +375,7 @@ export default function RoomPage() {
       {/* --------------------------------------------------------- vídeos */}
       <div className="grid gap-4 lg:grid-cols-2">
         <VideoPanel
-          label="você"
+          label={name ? `você · ${name}` : 'você'}
           active={isSharing}
           emptyHint="clique em compartilhar tela para começar"
           action={
@@ -335,7 +415,7 @@ export default function RoomPage() {
           remoteEntries.map(([peerId, stream]) => (
             <RemoteStreamPanel
               key={peerId}
-              label={peerId.slice(0, 8)}
+              label={peers.find((p) => p.id === peerId)?.name ?? peerId.slice(0, 8)}
               stream={stream}
               audioOn={audioOn.has(peerId)}
               onToggleAudio={() => toggleAudio(peerId)}

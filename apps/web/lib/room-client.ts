@@ -1,11 +1,13 @@
 import type {
   ClientMessage,
   PeerId,
+  PeerInfo,
   RoomId,
   RTCIceCandidateInitLike,
   ServerMessage,
   SignalPayload,
 } from '@jusqs/types';
+import { DEFAULT_PEER_NAME } from '@jusqs/types';
 
 import { fetchIceServers, getSignalingUrl } from './ice';
 import {
@@ -30,7 +32,7 @@ export type ConnectionStatus = 'idle' | 'connecting' | 'connected' | 'closed' | 
 
 export interface RoomClientHandlers {
   onStatus(status: ConnectionStatus): void;
-  onPeersChange(peers: PeerId[]): void;
+  onPeersChange(peers: PeerInfo[]): void;
   onRemoteStream(peerId: PeerId, stream: MediaStream): void;
   onRemoteStreamEnded(peerId: PeerId): void;
   onLocalStream(stream: MediaStream | null): void;
@@ -81,6 +83,8 @@ interface DisplayMediaOptions extends Omit<DisplayMediaStreamOptions, 'audio'> {
  */
 interface PeerState {
   readonly pc: RTCPeerConnection;
+  /** Como este peer se chama agora — pode mudar no meio da sessão. */
+  name: string;
   pendingIce: RTCIceCandidateInitLike[];
   queue: Promise<void>;
   sentCandidates: number;
@@ -154,6 +158,7 @@ export class RoomClient {
   #selfId: PeerId | null = null;
   #localStream: MediaStream | null = null;
   #disposed = false;
+  #name: string;
 
   /**
    * Preenchido antes do `join`, e por isso já disponível quando o primeiro
@@ -161,9 +166,21 @@ export class RoomClient {
    */
   #iceServers: RTCIceServer[] = [];
 
-  constructor(roomId: RoomId, handlers: RoomClientHandlers) {
+  constructor(roomId: RoomId, handlers: RoomClientHandlers, name: string) {
     this.#roomId = roomId;
     this.#handlers = handlers;
+    this.#name = name;
+  }
+
+  /**
+   * Troca o próprio nome durante a sessão.
+   *
+   * Não reconecta: o servidor renomeia em memória e avisa os outros. Antes do
+   * `join` só guarda, e o valor vai junto quando a conexão abrir.
+   */
+  setName(name: string): void {
+    this.#name = name;
+    this.#send({ type: 'rename', name });
   }
 
   /* ---------------------------------------------------------------- ciclo */
@@ -200,7 +217,7 @@ export class RoomClient {
         if (this.#disposed || this.#socket !== socket) return;
 
         this.#iceServers = servers;
-        this.#send({ type: 'join', roomId: this.#roomId });
+        this.#send({ type: 'join', roomId: this.#roomId, name: this.#name });
         this.#handlers.onStatus('connected');
       });
     });
@@ -538,22 +555,33 @@ export class RoomClient {
         this.#selfId = message.peerId;
         // Quem já estava na sala é quem oferta. Aqui apenas preparamos as
         // conexões e esperamos.
-        for (const peerId of message.peers) this.#ensurePeer(peerId);
+        for (const peer of message.peers) this.#ensurePeer(peer.id, peer.name);
         this.#emitPeers();
         return;
       }
 
       case 'peer-joined': {
-        const state = this.#ensurePeer(message.peerId);
+        const { id, name } = message.peer;
+        const state = this.#ensurePeer(id, name);
         this.#emitPeers();
 
         // Convenção do protocolo: quem já estava inicia a oferta.
         if (this.#localStream) {
-          this.#enqueue(message.peerId, async () => {
+          this.#enqueue(id, async () => {
             this.#attachLocalTracks(state.pc);
-            await this.#makeOffer(message.peerId, state.pc);
+            await this.#makeOffer(id, state.pc);
           });
         }
+        return;
+      }
+
+      case 'peer-renamed': {
+        const state = this.#peers.get(message.peerId);
+        // Renomear não mexe na conexão: só no rótulo.
+        if (!state) return;
+
+        state.name = message.name;
+        this.#emitPeers();
         return;
       }
 
@@ -646,13 +674,14 @@ export class RoomClient {
     }
   }
 
-  #ensurePeer(peerId: PeerId): PeerState {
+  #ensurePeer(peerId: PeerId, name = DEFAULT_PEER_NAME): PeerState {
     const existing = this.#peers.get(peerId);
     if (existing) return existing;
 
     const pc = new RTCPeerConnection({ iceServers: this.#iceServers });
     const state: PeerState = {
       pc,
+      name,
       pendingIce: [],
       queue: Promise.resolve(),
       sentCandidates: 0,
@@ -818,7 +847,14 @@ export class RoomClient {
   }
 
   #emitPeers(): void {
-    this.#handlers.onPeersChange([...this.#peers.keys()]);
+    this.#handlers.onPeersChange(
+      [...this.#peers].map(([id, state]) => ({ id, name: state.name })),
+    );
+  }
+
+  /** Nome atual de um peer, para rotular painéis. */
+  nameOf(peerId: PeerId): string {
+    return this.#peers.get(peerId)?.name ?? DEFAULT_PEER_NAME;
   }
 
   /* --------------------------------------------------------- diagnóstico */

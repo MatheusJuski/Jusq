@@ -92,6 +92,7 @@ export async function buildServer(env: ServerEnv) {
           const result = rooms.join({
             id: peerId,
             roomId: message.roomId,
+            name: message.name,
             send,
           });
 
@@ -101,7 +102,10 @@ export async function buildServer(env: ServerEnv) {
           }
 
           joined = true;
-          app.log.info({ peerId, roomId: message.roomId }, 'peer entrou');
+          app.log.info(
+            { peerId, roomId: message.roomId, name: message.name },
+            'peer entrou',
+          );
 
           send({
             type: 'joined',
@@ -112,7 +116,24 @@ export async function buildServer(env: ServerEnv) {
 
           // Quem já estava é notificado e — por convenção do protocolo —
           // é quem inicia a oferta. Evita glare sem perfect negotiation.
-          rooms.broadcast(message.roomId, { type: 'peer-joined', peerId }, peerId);
+          rooms.broadcast(
+            message.roomId,
+            { type: 'peer-joined', peer: { id: peerId, name: message.name } },
+            peerId,
+          );
+          return;
+        }
+
+        case 'rename': {
+          const roomId = rooms.rename(peerId, message.name);
+          // Renomear antes de entrar não é erro: só não há ninguém para avisar.
+          if (roomId === undefined) return;
+
+          rooms.broadcast(
+            roomId,
+            { type: 'peer-renamed', peerId, name: message.name },
+            peerId,
+          );
           return;
         }
 

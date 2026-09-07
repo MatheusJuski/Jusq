@@ -3,6 +3,7 @@ import type {
   RTCIceCandidateInitLike,
   SignalPayload,
 } from '@jusqs/types';
+import { DEFAULT_PEER_NAME, MAX_PEER_NAME_LENGTH } from '@jusqs/types';
 
 /**
  * Validação manual do protocolo.
@@ -25,8 +26,11 @@ export function parseClientMessage(raw: string): ClientMessage | null {
   switch (msg['type']) {
     case 'join':
       return isNonEmptyString(msg['roomId'])
-        ? { type: 'join', roomId: msg['roomId'] }
+        ? { type: 'join', roomId: msg['roomId'], name: parseName(msg['name']) }
         : null;
+
+    case 'rename':
+      return { type: 'rename', name: parseName(msg['name']) };
 
     case 'signal': {
       if (!isNonEmptyString(msg['to'])) return null;
@@ -37,6 +41,38 @@ export function parseClientMessage(raw: string): ClientMessage | null {
     default:
       return null;
   }
+}
+
+/**
+ * Sanea o nome exibido.
+ *
+ * Este é o único campo do protocolo que vai **direto para a tela de outra
+ * pessoa**, então ele não é só validado — é reescrito para uma forma segura.
+ * Nunca falha: nome ruim vira o padrão, e ninguém fica sem entrar na sala por
+ * causa de um apelido.
+ *
+ * O corte por *code points* e não por `length` importa: `slice` em JavaScript
+ * conta unidades UTF-16, e cortar no meio de um emoji produz um caractere
+ * inválido na tela de todo mundo.
+ */
+function parseName(value: unknown): string {
+  if (typeof value !== 'string') return DEFAULT_PEER_NAME;
+
+  const cleaned = [...value]
+    // Controles incluem quebra de linha e os bytes que quebram um layout de
+    // uma linha; os zero-width (U+200B a U+200D) e o BOM (U+FEFF) sao
+    // invisiveis e serviriam para fabricar um nome 'vazio' que ocupa espaco.
+    .filter((ch) => {
+      const code = ch.codePointAt(0) ?? 0;
+      if (code < 0x20 || (code >= 0x7f && code <= 0x9f)) return false;
+      if (code >= 0x200b && code <= 0x200d) return false;
+      return code !== 0xfeff;
+    })
+    .slice(0, MAX_PEER_NAME_LENGTH)
+    .join('')
+    .trim();
+
+  return cleaned.length > 0 ? cleaned : DEFAULT_PEER_NAME;
 }
 
 function parseSignalPayload(value: unknown): SignalPayload | null {

@@ -92,8 +92,8 @@ function createClient(url: string) {
     },
 
     /** Entra numa sala e devolve o próprio peerId. */
-    async join(roomId: string): Promise<string> {
-      this.send({ type: 'join', roomId });
+    async join(roomId: string, name = 'teste'): Promise<string> {
+      this.send({ type: 'join', roomId, name });
       return expectMessage(await this.next(), 'joined').peerId;
     },
   };
@@ -191,7 +191,7 @@ describe('servidor de signaling', () => {
     it('devolve peerId e sala vazia para o primeiro a chegar', async () => {
       const client = await connect();
 
-      client.send({ type: 'join', roomId: 'sala-1' });
+      client.send({ type: 'join', roomId: 'sala-1', name: 'teste' });
       const joined = expectMessage(await client.next(), 'joined');
 
       expect(joined.roomId).toBe('sala-1');
@@ -204,14 +204,14 @@ describe('servidor de signaling', () => {
       const primeiroId = await primeiro.join('sala-1');
 
       const segundo = await connect();
-      segundo.send({ type: 'join', roomId: 'sala-1' });
+      segundo.send({ type: 'join', roomId: 'sala-1', name: 'teste' });
 
       const joined = expectMessage(await segundo.next(), 'joined');
-      expect(joined.peers).toEqual([primeiroId]);
+      expect(joined.peers).toEqual([{ id: primeiroId, name: 'teste' }]);
 
       // Quem já estava é quem inicia a oferta — por isso ele precisa do aviso.
       const aviso = expectMessage(await primeiro.next(), 'peer-joined');
-      expect(aviso.peerId).toBe(joined.peerId);
+      expect(aviso.peer.id).toBe(joined.peerId);
     });
 
     it('não vaza entre salas', async () => {
@@ -228,7 +228,7 @@ describe('servidor de signaling', () => {
       const client = await connect();
       await client.join('sala-1');
 
-      client.send({ type: 'join', roomId: 'sala-2' });
+      client.send({ type: 'join', roomId: 'sala-2', name: 'teste' });
 
       expect(expectMessage(await client.next(), 'error').message).toMatch(/duplicado/);
       expect(await client.closed()).toBe(1008);

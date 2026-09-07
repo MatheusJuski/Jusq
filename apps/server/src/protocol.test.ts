@@ -26,9 +26,16 @@ describe('parseClientMessage', () => {
 
   describe('join', () => {
     it('aceita roomId não vazio', () => {
+      expect(
+        parseClientMessage('{"type":"join","roomId":"sala-1","name":"Ana"}'),
+      ).toEqual({ type: 'join', roomId: 'sala-1', name: 'Ana' });
+    });
+
+    it('entra sem nome — nome ruim nunca impede o acesso à sala', () => {
       expect(parseClientMessage('{"type":"join","roomId":"sala-1"}')).toEqual({
         type: 'join',
         roomId: 'sala-1',
+        name: 'anônimo',
       });
     });
 
@@ -44,7 +51,69 @@ describe('parseClientMessage', () => {
     it('descarta campos extras em vez de repassá-los', () => {
       const parsed = parseClientMessage('{"type":"join","roomId":"x","admin":true}');
 
-      expect(parsed).toEqual({ type: 'join', roomId: 'x' });
+      expect(parsed).toEqual({ type: 'join', roomId: 'x', name: 'anônimo' });
+    });
+  });
+
+  describe('nome exibido', () => {
+    /**
+     * O nome é o único campo do protocolo que vai direto para a tela de outra
+     * pessoa. A mensagem é montada com `JSON.stringify` de propósito: escrever
+     * o JSON à mão exigiria escapar controles duas vezes, e um escape errado
+     * viraria um teste que passa pelo motivo errado.
+     */
+    const nameOf = (name: unknown): string | null => {
+      const parsed = parseClientMessage(JSON.stringify({ type: 'rename', name }));
+      return parsed?.type === 'rename' ? parsed.name : null;
+    };
+
+    it('aceita um nome comum', () => {
+      expect(nameOf('Matheus')).toBe('Matheus');
+    });
+
+    it.each([
+      ['ausente', undefined],
+      ['vazio', ''],
+      ['só espaços', '   '],
+      ['numérico', 42],
+      ['nulo', null],
+      ['objeto', { nome: 'x' }],
+    ])('cai no padrão quando o nome é %s', (_caso, valor) => {
+      expect(nameOf(valor)).toBe('anônimo');
+    });
+
+    it('remove quebra de linha — o nome vive numa linha só', () => {
+      // `fromCharCode` em vez de escape: num teste sobre controles, o código
+      // do caractere é a informação, e evita depender de escape correto.
+      expect(nameOf('a' + String.fromCharCode(10) + 'b')).toBe('ab');
+    });
+
+    it('remove caracteres de controle', () => {
+      expect(nameOf('a' + String.fromCharCode(0, 31, 127) + 'b')).toBe('ab');
+    });
+
+    it('remove invisíveis usados para fabricar nome "vazio"', () => {
+      expect(nameOf(String.fromCharCode(0x200b, 0x200c, 0xfeff))).toBe('anônimo');
+    });
+
+    it('corta no limite', () => {
+      expect(nameOf('x'.repeat(100))).toHaveLength(24);
+    });
+
+    it('corta por code point, não por unidade UTF-16', () => {
+      // Um slice cru partiria o emoji ao meio e produziria lixo na tela.
+      const nome = nameOf('🎮'.repeat(40)) ?? '';
+
+      expect([...nome]).toHaveLength(24);
+      expect(nome).not.toContain(String.fromCharCode(0xfffd));
+    });
+
+    it('preserva acento e espaço interno', () => {
+      expect(nameOf('João da Silva')).toBe('João da Silva');
+    });
+
+    it('recusa JSON inválido antes de sanear', () => {
+      expect(parseClientMessage('{"type":"rename","name":')).toBeNull();
     });
   });
 

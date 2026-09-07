@@ -12,11 +12,16 @@ import { RoomRegistry, type Peer } from './rooms.js';
  * precise abrir socket nenhum — a caixa de mensagens abaixo é todo o
  * transporte de que estes testes precisam.
  */
-function fakePeer(id: PeerId, roomId: RoomId): Peer & { inbox: ServerMessage[] } {
+function fakePeer(
+  id: PeerId,
+  roomId: RoomId,
+  name = id,
+): Peer & { inbox: ServerMessage[] } {
   const inbox: ServerMessage[] = [];
   return {
     id,
     roomId,
+    name,
     inbox,
     send: (message) => inbox.push(message),
   };
@@ -39,7 +44,13 @@ describe('RoomRegistry', () => {
 
     const result = rooms.join(fakePeer('c', 'sala-1'));
 
-    expect(result).toEqual({ ok: true, peers: ['a', 'b'] });
+    expect(result).toEqual({
+      ok: true,
+      peers: [
+        { id: 'a', name: 'a' },
+        { id: 'b', name: 'b' },
+      ],
+    });
   });
 
   it('recusa o mesmo peer entrando duas vezes', () => {
@@ -154,7 +165,11 @@ describe('RoomRegistry', () => {
       rooms.join(a);
       rooms.join(b);
 
-      rooms.broadcast('sala-1', { type: 'peer-joined', peerId: 'b' }, 'b');
+      rooms.broadcast(
+        'sala-1',
+        { type: 'peer-joined', peer: { id: 'b', name: 'b' } },
+        'b',
+      );
 
       expect(a.inbox).toHaveLength(1);
       expect(b.inbox).toHaveLength(0);
