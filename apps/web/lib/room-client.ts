@@ -77,13 +77,13 @@ interface DisplayMediaOptions extends Omit<DisplayMediaStreamOptions, 'audio'> {
  * precisam ser aplicados em ordem, e as mensagens chegam por um socket que não
  * espera o processamento anterior terminar.
  *
- * `pendingIce` guarda candidatos que chegaram antes da descrição remota — o
+ * `pendingIce` guarda candidatos que chegaram antes da descrição remota, o
  * `addIceCandidate` falha nesse caso, e descartar significaria perder o único
  * caminho de rede viável.
  */
 interface PeerState {
   readonly pc: RTCPeerConnection;
-  /** Como este peer se chama agora — pode mudar no meio da sessão. */
+  /** Como este peer se chama agora, pode mudar no meio da sessão. */
   name: string;
   pendingIce: RTCIceCandidateInitLike[];
   queue: Promise<void>;
@@ -118,7 +118,7 @@ export interface PeerDiagnostics {
    * Bytes de áudio **enviados**.
    *
    * Sem isto, quem transmite não tem como saber se o próprio áudio está
-   * saindo — só quem recebe conseguia verificar. Fecha o outro lado da
+   * saindo, só quem recebe conseguia verificar. Fecha o outro lado da
    * cadeia.
    */
   outboundAudioBytes: number;
@@ -137,15 +137,15 @@ export interface PeerDiagnostics {
 /**
  * Cliente de sala do Screen Lab.
  *
- * Mantém uma conexão de signaling (WebSocket) e uma malha de RTCPeerConnection
- * — uma por peer. A mídia trafega direto entre browsers; o servidor só carrega
+ * Mantém uma conexão de signaling (WebSocket) e uma malha de RTCPeerConnection,
+ * uma por peer. A mídia trafega direto entre browsers; o servidor só carrega
  * SDP e ICE.
  *
  * ## Limitação conhecida do V0
  *
  * Assume **um transmissor por vez**. Se dois peers chamarem `startSharing()`
  * simultaneamente, as ofertas colidem (glare) e a negociação pode travar.
- * Resolver isso exige perfect negotiation — Phase 3, junto com o SFU.
+ * Resolver isso exige perfect negotiation, Phase 3, junto com o SFU.
  */
 export class RoomClient {
   readonly #roomId: RoomId;
@@ -202,7 +202,7 @@ export class RoomClient {
 
     // Disparado junto com o handshake, não depois: os dois correm em paralelo
     // e o custo do `fetch` some dentro do tempo de abrir o WebSocket.
-    // `fetchIceServers` nunca rejeita — no pior caso devolve o STUN público.
+    // `fetchIceServers` nunca rejeita, no pior caso devolve o STUN público.
     const iceServers = fetchIceServers();
 
     const socket = new WebSocket(url);
@@ -211,7 +211,7 @@ export class RoomClient {
     socket.addEventListener('open', () => {
       // O `join` espera o ICE porque a resposta dele já traz peers, e cada peer
       // vira um `RTCPeerConnection` na hora. Entrar antes da configuração
-      // chegar criaria as primeiras conexões sem TURN — e a falha apareceria
+      // chegar criaria as primeiras conexões sem TURN, e a falha apareceria
       // só em rede difícil, exatamente onde o TURN faz falta.
       void iceServers.then((servers) => {
         if (this.#disposed || this.#socket !== socket) return;
@@ -321,7 +321,7 @@ export class RoomClient {
   /**
    * Troca o perfil de qualidade.
    *
-   * Se já houver transmissão, aplica ao vivo — `applyConstraints` reconfigura a
+   * Se já houver transmissão, aplica ao vivo, `applyConstraints` reconfigura a
    * captura sem pedir a tela de novo, e os tetos de bitrate são reaplicados.
    * Sem transmissão, vale a partir da próxima captura.
    */
@@ -342,7 +342,7 @@ export class RoomClient {
    * Captura a tela pelo caminho da fonte de áudio escolhida.
    *
    * Cada caminho abre **um único seletor**. As fontes que não dependem do
-   * áudio da tela — microfone, dispositivo de entrada, nenhum — pedem só o
+   * áudio da tela, microfone, dispositivo de entrada, nenhum, pedem só o
    * vídeo, e por isso nunca esbarram no `NotReadableError` do áudio de
    * sistema.
    *
@@ -374,7 +374,7 @@ export class RoomClient {
     return this.#captureWithDisplayAudio();
   }
 
-  /** Fecha o seletor de tela — intenção do usuário, não falha. */
+  /** Fecha o seletor de tela, intenção do usuário, não falha. */
   static #cancelled(error: unknown): boolean {
     return error instanceof DOMException && error.name === 'NotAllowedError';
   }
@@ -391,7 +391,7 @@ export class RoomClient {
     } catch (error) {
       if (RoomClient.#cancelled(error)) return null;
       this.#handlers.onError(
-        `não foi possível capturar a tela — ${RoomClient.#describe(error)}`,
+        `não foi possível capturar a tela, ${RoomClient.#describe(error)}`,
       );
       return null;
     }
@@ -402,7 +402,7 @@ export class RoomClient {
    *
    * As duas capturas são independentes: o vídeo pode vir de uma janela, que
    * nunca teria áudio próprio, e o som vem do dispositivo escolhido. Falhar no
-   * áudio aqui degrada para vídeo — nunca cancela a transmissão.
+   * áudio aqui degrada para vídeo, nunca cancela a transmissão.
    */
   async #captureWithDeviceAudio(deviceId: string | null): Promise<MediaStream | null> {
     const video = await this.#captureVideoOnly();
@@ -420,7 +420,7 @@ export class RoomClient {
     } catch (error) {
       this.#handlers.onError(
         `${deviceId ? 'o dispositivo de áudio escolhido' : 'o microfone'} não ` +
-          `abriu — transmitindo só o vídeo (${RoomClient.#describe(error)}).`,
+          `abriu, transmitindo só o vídeo (${RoomClient.#describe(error)}).`,
       );
       return video;
     }
@@ -437,12 +437,12 @@ export class RoomClient {
    * sem som é melhor do que não transmitir: quem escolheu uma janela quase
    * sempre quer mostrar a janela, e o áudio era o extra.
    *
-   * O aviso explica o que faltou — sem ele, o silêncio pareceria defeito.
+   * O aviso explica o que faltou, sem ele, o silêncio pareceria defeito.
    */
   async #captureWithDisplayAudio(): Promise<MediaStream | null> {
     // Todas as dicas que a especificação oferece.
     //
-    // Nenhuma delas **obriga** o navegador a entregar uma trilha de áudio — são
+    // Nenhuma delas **obriga** o navegador a entregar uma trilha de áudio, são
     // hints sobre o que oferecer no seletor. Medimos que não alteram o
     // resultado nesta máquina (ver ADR-001), mas omiti-las seria pedir menos do
     // que a plataforma permite, e o comportamento varia entre sistemas.
@@ -466,7 +466,7 @@ export class RoomClient {
         `captura com áudio falhou: ${RoomClient.#describe(error)}`,
       );
       this.#handlers.onNotice(
-        'Esta fonte não entrega áudio — a transmissão vai continuar só com ' +
+        'Esta fonte não entrega áudio, a transmissão vai continuar só com ' +
           'vídeo. Escolha a mesma fonte outra vez na janela que abrir. ' +
           'Para levar som ao transmitir tela ou janela, troque a fonte de ' +
           'áudio para "microfone".',
@@ -506,7 +506,7 @@ export class RoomClient {
         await video.applyConstraints(videoConstraints(preset));
       } catch {
         this.#handlers.onError(
-          `a fonte não aceitou ${preset.label} — transmitindo no que ela permite`,
+          `a fonte não aceitou ${preset.label}, transmitindo no que ela permite`,
         );
       }
     }
@@ -647,7 +647,7 @@ export class RoomClient {
       case 'ice': {
         state.receivedCandidates++;
 
-        // Antes da descrição remota o candidato não pode ser aplicado — e
+        // Antes da descrição remota o candidato não pode ser aplicado, e
         // descartá-lo pode custar o único caminho de rede que funcionaria.
         if (!pc.remoteDescription) {
           state.pendingIce.push(payload.candidate);
@@ -733,7 +733,7 @@ export class RoomClient {
       if (pc.connectionState !== 'failed') return;
       // Quase sempre significa: P2P não passou e não há TURN configurado.
       this.#handlers.onError(
-        `conexão com ${peerId.slice(0, 8)} falhou — provavelmente NAT sem TURN`,
+        `conexão com ${peerId.slice(0, 8)} falhou, provavelmente NAT sem TURN`,
       );
     });
 
@@ -768,7 +768,7 @@ export class RoomClient {
    * o que vai para a rede. Sem este teto o encoder decide sozinho quanto gastar,
    * e numa malha mesh esse número é multiplicado por espectador.
    *
-   * Só vale depois de `setLocalDescription` — antes disso não há encodings.
+   * Só vale depois de `setLocalDescription`, antes disso não há encodings.
    */
   async #applySenderLimits(pc: RTCPeerConnection): Promise<void> {
     for (const sender of pc.getSenders()) {
@@ -808,7 +808,7 @@ export class RoomClient {
   /**
    * Mede o bitrate real ao longo de uma janela de tempo.
    *
-   * `getStats` entrega contadores acumulados, não taxa — só a diferença entre
+   * `getStats` entrega contadores acumulados, não taxa, só a diferença entre
    * duas leituras revela quanto está realmente trafegando. Serve para conferir
    * se o teto configurado foi de fato aplicado: áudio de música em ~32 kbps
    * soa fino e com artefatos, e nenhum painel de estado revela isso.

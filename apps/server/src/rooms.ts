@@ -5,7 +5,7 @@ import { MAX_PEERS_PER_ROOM } from '@jusqs/types';
  * Um participante conectado.
  *
  * `send` é injetado pelo transporte para que este módulo não conheça
- * WebSocket — o que o torna testável sem abrir socket nenhum.
+ * WebSocket, o que o torna testável sem abrir socket nenhum.
  */
 export interface Peer {
   readonly id: PeerId;
@@ -75,7 +75,7 @@ export class RoomRegistry {
   /**
    * Troca o nome de um peer já na sala.
    *
-   * Devolve a sala para quem chamou avisar os outros — o registro não fala com
+   * Devolve a sala para quem chamou avisar os outros, o registro não fala com
    * ninguém por conta própria.
    */
   rename(peerId: PeerId, name: string): RoomId | undefined {

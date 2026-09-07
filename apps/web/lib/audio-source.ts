@@ -1,16 +1,16 @@
 /**
  * Escolha da fonte de áudio da transmissão.
  *
- * `getDisplayMedia` só entrega áudio junto da tela em alguns casos — nunca ao
+ * `getDisplayMedia` só entrega áudio junto da tela em alguns casos, nunca ao
  * compartilhar uma janela isolada, que é justamente o caso de um jogo. A saída
  * é desacoplar: o vídeo continua vindo da captura de tela, e o áudio pode vir
  * de um dispositivo de **entrada** capturado com `getUserMedia`.
  *
  * São mecanismos distintos, e vale não confundi-los:
  *
- * - **áudio da superfície** — o que `getDisplayMedia` associa à tela, janela ou
+ * - **áudio da superfície**, o que `getDisplayMedia` associa à tela, janela ou
  *   aba compartilhada, negociado por `systemAudio` e `windowAudio`
- * - **dispositivo de entrada** — "Mixagem Estéreo" ou um cabo virtual, que o
+ * - **dispositivo de entrada**, "Mixagem Estéreo" ou um cabo virtual, que o
  *   Windows expõe como entrada capturando o que sai pelo dispositivo de saída
  *
  * O segundo não substitui o primeiro conceitualmente; ele apenas oferece um
@@ -24,7 +24,7 @@ export const AUDIO_SOURCE_NONE = 'none';
  * Microfone padrão do sistema.
  *
  * Opção de primeira classe, e não mais um item da lista de dispositivos: é o
- * único caminho de áudio que funciona em qualquer fonte — inclusive janela —
+ * único caminho de áudio que funciona em qualquer fonte, inclusive janela,
  * sem o usuário configurar nada. Um clique de permissão e pronto.
  */
 export const AUDIO_SOURCE_MICROPHONE = 'microphone';
@@ -51,7 +51,7 @@ export function deviceIdOf(value: string): string | null {
  *
  * Sem processamento, pelo mesmo motivo do áudio de tela: o alvo aqui é som de
  * jogo, música ou vídeo, e os filtros de voz destroem esse material. Para um
- * microfone de locução o ideal seria o contrário — mas isso é escolha de outro
+ * microfone de locução o ideal seria o contrário, mas isso é escolha de outro
  * experimento, não do Screen Lab.
  */
 export const DEVICE_AUDIO_CONSTRAINTS = {
@@ -72,7 +72,7 @@ export const MICROPHONE_CONSTRAINTS = true;
 /**
  * Lista os dispositivos de entrada de áudio disponíveis.
  *
- * Os rótulos só existem depois que a página recebe permissão de áudio — antes
+ * Os rótulos só existem depois que a página recebe permissão de áudio, antes
  * disso o browser devolve entradas anônimas, inúteis para o usuário escolher.
  * Por isso a permissão é pedida quando necessário, e o stream de sondagem é
  * encerrado no mesmo instante.

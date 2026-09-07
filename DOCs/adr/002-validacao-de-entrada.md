@@ -1,4 +1,4 @@
-# ADR-002 — zod entra pelo ambiente, não pelo protocolo
+# ADR-002, zod entra pelo ambiente, não pelo protocolo
 
 **Status:** Aceito
 **Data:** setembro/2026
@@ -12,7 +12,7 @@ O V0 recusou zod explicitamente. O comentário em `apps/server/src/protocol.ts`
 registra o motivo:
 
 > Sem zod no V0 de propósito (Regra 1: nenhuma tecnologia sem motivo).
-> O protocolo tem duas mensagens — uma biblioteca de schema aqui seria peso
+> O protocolo tem duas mensagens, uma biblioteca de schema aqui seria peso
 > morto.
 
 A Phase 1 traz um segundo lugar que precisa validar entrada: o **ambiente**.
@@ -28,7 +28,7 @@ E ele não se parece com o protocolo.
 
 O parser do protocolo responde uma pergunta binária num caminho quente. A
 validação de ambiente precisa converter tipos (`"3001"` → `3001`), aplicar
-padrões, quebrar listas e — o ponto que decide — **acumular todos os problemas
+padrões, quebrar listas e, o ponto que decide, **acumular todos os problemas
 e nomear cada um**. Escrito à mão, isso não são vinte linhas: são os mesmos
 combinadores que uma biblioteca de schema já traz, com menos testes.
 
@@ -47,7 +47,7 @@ protocolo ganhar mensagens, não zod já estar no repositório.
 ## Consequências
 
 - Uma dependência nova, no servidor. Ela é empacotada pelo esbuild junto com o
-  resto — não muda o formato do deploy.
+  resto, não muda o formato do deploy.
 - O ambiente falha no boot, com o nome da variável, e acumulando os problemas
   em vez de reportar um por vez.
 - O contorno registrado: **variável em branco vale como não definida**. Um
@@ -60,7 +60,7 @@ protocolo ganhar mensagens, não zod já estar no repositório.
 ## Alternativas consideradas
 
 **Escrever os combinadores à mão.** Rejeitada: o resultado seria um zod pequeno
-e sem testes. É exatamente o erro contra o qual a Regra 1 não protege — evitar a
+e sem testes. É exatamente o erro contra o qual a Regra 1 não protege, evitar a
 dependência construindo uma pior.
 
 **Reescrever o protocolo com zod, por consistência.** Rejeitada: consistência

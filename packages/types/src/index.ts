@@ -5,7 +5,7 @@
  * trocadas entre `apps/web` e `apps/server`. Alterar algo aqui quebra o
  * typecheck dos dois lados de propósito.
  *
- * O servidor nunca interpreta o conteúdo de `SignalPayload` — ele apenas
+ * O servidor nunca interpreta o conteúdo de `SignalPayload`, ele apenas
  * repassa de um peer para outro. Toda a negociação WebRTC acontece nos
  * browsers.
  */
@@ -21,7 +21,7 @@ export type RoomId = string;
  *
  * O `id` é do servidor e não muda; o `name` é escolhido por quem entra e pode
  * mudar a qualquer momento. Os dois andam juntos porque o nome sozinho não
- * identifica — duas pessoas podem escolher o mesmo.
+ * identifica, duas pessoas podem escolher o mesmo.
  */
 export interface PeerInfo {
   id: PeerId;
@@ -70,7 +70,7 @@ export type ServerMessage =
    * Confirmação do join.
    *
    * `peers` contém quem JÁ estava na sala. Convenção do V0: quem chega é
-   * passivo — quem já estava é que inicia a oferta. Isso evita glare
+   * passivo, quem já estava é que inicia a oferta. Isso evita glare
    * (dois lados ofertando ao mesmo tempo) sem precisar de perfect negotiation.
    */
   | { type: 'joined'; peerId: PeerId; roomId: RoomId; peers: PeerInfo[] }
@@ -87,7 +87,7 @@ export type ServerMessage =
 /**
  * Mesh puro: cada peer abre uma conexão com cada outro peer.
  * O custo cresce em O(n²), por isso o teto baixo.
- * Superar isso exige um SFU — Phase 3.
+ * Superar isso exige um SFU, Phase 3.
  */
 export const MAX_PEERS_PER_ROOM = 6;
 
@@ -98,7 +98,7 @@ export const MAX_MESSAGE_BYTES = 64 * 1024;
  * Limite do nome exibido.
  *
  * Curto de propósito: o nome aparece no cabeçalho de um painel de vídeo, ao
- * lado dos controles. Um nome longo não é só feio — ele empurra os botões de
+ * lado dos controles. Um nome longo não é só feio, ele empurra os botões de
  * som e tela cheia para fora da tela.
  */
 export const MAX_PEER_NAME_LENGTH = 24;
@@ -114,7 +114,7 @@ export const DEFAULT_PEER_NAME = 'anônimo';
  * Um servidor ICE, no formato que o `RTCPeerConnection` aceita.
  *
  * Declarado aqui e não importado do DOM porque o servidor é quem monta isto,
- * e ele roda em Node — sem `RTCIceServer`.
+ * e ele roda em Node, sem `RTCIceServer`.
  */
 export interface IceServerConfig {
   urls: string[];

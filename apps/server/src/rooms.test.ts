@@ -9,7 +9,7 @@ import { RoomRegistry, type Peer } from './rooms.js';
  * Peer de teste.
  *
  * `RoomRegistry` recebe `send` injetado justamente para que o teste não
- * precise abrir socket nenhum — a caixa de mensagens abaixo é todo o
+ * precise abrir socket nenhum, a caixa de mensagens abaixo é todo o
  * transporte de que estes testes precisam.
  */
 function fakePeer(
@@ -103,7 +103,7 @@ describe('RoomRegistry', () => {
     expect(rooms.leave('fantasma')).toBeUndefined();
   });
 
-  it('sala vazia é removida — o Map não pode virar vazamento lento', () => {
+  it('sala vazia é removida, o Map não pode virar vazamento lento', () => {
     const rooms = new RoomRegistry();
     rooms.join(fakePeer('a', 'sala-1'));
     rooms.leave('a');
@@ -158,7 +158,7 @@ describe('RoomRegistry', () => {
       expect(b.inbox).toEqual([{ type: 'peer-left', peerId: 'z' }]);
     });
 
-    it('pula o peer excluído — quem entra não é avisado da própria entrada', () => {
+    it('pula o peer excluído, quem entra não é avisado da própria entrada', () => {
       const rooms = new RoomRegistry();
       const a = fakePeer('a', 'sala-1');
       const b = fakePeer('b', 'sala-1');

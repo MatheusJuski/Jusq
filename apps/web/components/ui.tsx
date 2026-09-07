@@ -3,7 +3,7 @@ import type { ComponentPropsWithoutRef, ReactNode } from 'react';
 /**
  * Peças compartilhadas da interface.
  *
- * Extraídas do que **já estava repetido** entre a sala e a home — o pill de
+ * Extraídas do que **já estava repetido** entre a sala e a home, o pill de
  * controle e o botão preenchido apareciam com as mesmas dez classes em quatro
  * lugares. Nada aqui foi inventado por antecipação: componente criado para um
  * uso futuro imaginado é dívida, não sistema.
@@ -62,7 +62,7 @@ export function Card({
 /**
  * Rótulo de seção.
  *
- * Caixa alta com tracking largo é o único lugar onde o projeto usa versal —
+ * Caixa alta com tracking largo é o único lugar onde o projeto usa versal,
  * reservá-la a metadados mantém o resto do texto legível.
  */
 export function SectionTitle({ children }: { children: ReactNode }) {

@@ -3,7 +3,7 @@
  *
  * Até aqui o Screen Lab **era** o site: a home falava dele, a rota era
  * `/room/:id`, e a lista de "próximos" era um array decorativo que não levava
- * a lugar nenhum. Isto inverte a relação — o Jusq's passa a ser o contêiner, e
+ * a lugar nenhum. Isto inverte a relação, o Jusq's passa a ser o contêiner, e
  * cada experimento vira um inquilino com identidade e subárvore próprias.
  *
  * A diferença aparece na Phase 4: com registro, o Draw Lab é **adicionado**
@@ -41,7 +41,7 @@ export const EXPERIMENTS: readonly Experiment[] = [
     tagline: 'compartilhamento de tela peer-to-peer',
     about:
       'Transmissão de tela entre navegadores por WebRTC. O vídeo vai direto ' +
-      'de uma máquina à outra — o servidor apresenta os dois e sai do caminho.',
+      'de uma máquina à outra, o servidor apresenta os dois e sai do caminho.',
     status: 'ativo',
     tech: ['WebRTC', 'WebSocket', 'mesh P2P', 'Opus'],
     learns: 'negociação WebRTC, ICE e transporte de mídia em tempo real',
@@ -76,7 +76,7 @@ export const EXPERIMENTS: readonly Experiment[] = [
     name: 'RPG Lab',
     tagline: 'geração procedural de mundos',
     about:
-      'Reinos, cidades, facções e histórias gerados a partir de uma seed — a ' +
+      'Reinos, cidades, facções e histórias gerados a partir de uma seed, a ' +
       'mesma seed reconstrói o mesmo mundo, sempre.',
     status: 'planejado',
     tech: ['geração procedural', 'seeds'],

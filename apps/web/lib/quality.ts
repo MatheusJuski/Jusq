@@ -80,7 +80,7 @@ export const DEFAULT_QUALITY_ID = '720p30';
 /**
  * Bitrate do áudio, em bits por segundo.
  *
- * O padrão do WebRTC para Opus fica na casa dos 32 kbps mono — dimensionado
+ * O padrão do WebRTC para Opus fica na casa dos 32 kbps mono, dimensionado
  * para voz em chamada. 128 kbps estéreo é o patamar em que música e áudio de
  * jogo deixam de soar metálicos, e é irrelevante perto do vídeo.
  */
@@ -126,13 +126,13 @@ export const AUDIO_CONSTRAINTS: MediaTrackConstraints = {
  * Habilita estéreo e eleva o bitrate do Opus editando o SDP.
  *
  * Não existe API para isso: `RTCRtpSender.setParameters` controla bitrate, mas
- * **não** liga estéreo — `stereo=1` só é negociável pela linha `a=fmtp` do
+ * **não** liga estéreo, `stereo=1` só é negociável pela linha `a=fmtp` do
  * codec. Editar SDP é feio e é a forma padrão de fazer isso em WebRTC.
  *
- * - `stereo=1` — aceito receber estéreo
- * - `sprop-stereo=1` — vou enviar estéreo
- * - `maxaveragebitrate` — teto que o encoder pode usar
- * - `useinbandfec=1` — correção de erro embutida, ajuda com perda de pacote
+ * - `stereo=1`, aceito receber estéreo
+ * - `sprop-stereo=1`, vou enviar estéreo
+ * - `maxaveragebitrate`, teto que o encoder pode usar
+ * - `useinbandfec=1`, correção de erro embutida, ajuda com perda de pacote
  *
  * Parâmetros já presentes (ex. `minptime`) são preservados. SDP sem Opus volta
  * intacto.

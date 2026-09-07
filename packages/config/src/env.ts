@@ -4,7 +4,7 @@ import { z } from 'zod';
  * Validação de ambiente do Jusq's.
  *
  * O problema que isto resolve apareceu de verdade na Phase 0: uma variável
- * errada não falha no boot — ela falha depois, longe da causa. `PORT` vazia
+ * errada não falha no boot, ela falha depois, longe da causa. `PORT` vazia
  * vira `NaN`, `CORS_ORIGIN` com espaço sobrando derruba o handshake, e o
  * sintoma que chega é "a sala não abre".
  *
@@ -15,7 +15,7 @@ import { z } from 'zod';
  * ## Por que só o servidor
  *
  * O `apps/web` não usa este módulo, e não é esquecimento. O Next substitui
- * `process.env.NEXT_PUBLIC_*` por texto literal em tempo de build — não existe
+ * `process.env.NEXT_PUBLIC_*` por texto literal em tempo de build, não existe
  * objeto `process.env` no browser para validar em runtime, e qualquer acesso
  * dinâmico (desestruturação, índice) quebra a substituição. A validação do web
  * mora em `apps/web/lib/ice.ts`, onde o acesso literal é preservado.
@@ -50,7 +50,7 @@ export const serverEnvSchema = z
     NODE_ENV: z.enum(['development', 'test', 'production']).default('development'),
 
     // As mensagens são explícitas porque o padrão do zod, aplicado a uma
-    // variável de ambiente, sai como "expected number, received NaN" — que
+    // variável de ambiente, sai como "expected number, received NaN", que
     // descreve o que aconteceu depois da coerção, não o que a pessoa escreveu.
     PORT: z.coerce
       .number({ error: 'deve ser um número de porta' })
@@ -70,7 +70,7 @@ export const serverEnvSchema = z
     LOG_LEVEL: z.enum(LOG_LEVELS).default('info'),
 
     /**
-     * Ausente = salas só em memória, o comportamento da Phase 0 — que é também o
+     * Ausente = salas só em memória, o comportamento da Phase 0, que é também o
      * comportamento correto: a sala vive até a última pessoa sair, e nada nela
      * precisa sobreviver a um restart. Ver `adr/003-postgres-adiado.md`.
      *
@@ -106,7 +106,7 @@ export const serverEnvSchema = z
 
     /**
      * Credencial fixa, para provedor que não oferece segredo compartilhado.
-     * Funciona, mas não expira — por isso não é o padrão.
+     * Funciona, mas não expira, por isso não é o padrão.
      */
     TURN_USERNAME: z.string().min(1).optional(),
     TURN_PASSWORD: z.string().min(1).optional(),
@@ -116,7 +116,7 @@ export const serverEnvSchema = z
       .number({ error: 'deve ser um número de segundos' })
       .int('deve ser um número inteiro')
       .min(60, 'credencial válida por menos de um minuto é inútil')
-      .max(86400, 'no máximo 24 horas — o ponto da credencial derivada é expirar')
+      .max(86400, 'no máximo 24 horas, o ponto da credencial derivada é expirar')
       .default(3600),
   })
   .superRefine((env, ctx) => {
@@ -124,7 +124,7 @@ export const serverEnvSchema = z
     const hasSecret = Boolean(env.TURN_SECRET);
 
     // Metade de uma credencial estática não é credencial nenhuma, e o sintoma
-    // seria uma conexão que só falha em rede difícil — meses depois.
+    // seria uma conexão que só falha em rede difícil, meses depois.
     if (Boolean(env.TURN_USERNAME) !== Boolean(env.TURN_PASSWORD)) {
       ctx.addIssue({
         code: 'custom',
@@ -139,7 +139,7 @@ export const serverEnvSchema = z
         path: ['TURN_SECRET'],
         message:
           'escolha um modo: TURN_SECRET (credencial que expira) ou ' +
-          'TURN_USERNAME/TURN_PASSWORD (fixa) — não os dois',
+          'TURN_USERNAME/TURN_PASSWORD (fixa), não os dois',
       });
     }
 
@@ -153,7 +153,7 @@ export const serverEnvSchema = z
       });
     }
 
-    // Credencial sem servidor é configuração que não faz nada — e que a pessoa
+    // Credencial sem servidor é configuração que não faz nada, e que a pessoa
     // acredita estar fazendo alguma coisa.
     if (!env.TURN_URLS && (hasSecret || hasStatic)) {
       ctx.addIssue({
@@ -181,7 +181,7 @@ export class ConfigError extends Error {
 /**
  * Lê e valida o ambiente do servidor.
  *
- * `source` é injetável para que o teste não precise sujar `process.env` — o
+ * `source` é injetável para que o teste não precise sujar `process.env`, o
  * que, num runner que roda arquivos em paralelo, vaza de um teste para o outro.
  */
 export function loadServerEnv(
@@ -206,7 +206,7 @@ export function loadServerEnv(
  *
  * Um `.env.example` documenta as opções deixando os valores vazios, e é isso
  * que a pessoa copia. Sem esta normalização, `DATABASE_URL=` derruba o boot
- * com "deve ser uma URL postgres://" — punindo exatamente quem seguiu o
+ * com "deve ser uma URL postgres://", punindo exatamente quem seguiu o
  * arquivo de exemplo.
  */
 function withoutBlanks(

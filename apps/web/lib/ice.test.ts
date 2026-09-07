@@ -6,7 +6,7 @@ import { fetchIceServers, getIceEndpoint } from './ice';
 
 /**
  * `getSignalingUrl` cai no padrão de desenvolvimento quando
- * `NEXT_PUBLIC_SIGNALING_URL` não está definida, e é assim que o teste roda —
+ * `NEXT_PUBLIC_SIGNALING_URL` não está definida, e é assim que o teste roda,
  * sem depender de variável de ambiente nenhuma.
  */
 const PADRAO = 'http://localhost:3001/ice';
@@ -49,7 +49,7 @@ describe('getIceEndpoint', () => {
     expect(getIceEndpoint()).toBe(esperado);
   });
 
-  it('wss vira https — página HTTPS não pode buscar em HTTP', () => {
+  it('wss vira https, página HTTPS não pode buscar em HTTP', () => {
     vi.stubEnv('NEXT_PUBLIC_SIGNALING_URL', 'wss://jusqs.onrender.com/ws');
 
     // Conteúdo misto seria bloqueado pelo browser, e o erro reportado não
@@ -76,7 +76,7 @@ describe('fetchIceServers', () => {
     expect(await fetchIceServers()).toEqual(config.iceServers);
   });
 
-  it('busca sem cache — a credencial expira', async () => {
+  it('busca sem cache, a credencial expira', async () => {
     const fetchMock = vi.fn(() =>
       Promise.resolve(jsonResponse({ iceServers: [{ urls: ['stun:x'] }], ttl: null })),
     );
@@ -89,7 +89,7 @@ describe('fetchIceServers', () => {
 
   describe('cai no STUN público em vez de falhar', () => {
     // Perder o TURN degrada a conexão em rede difícil. Perder a sala porque um
-    // fetch falhou seria pior — e é o que aconteceria se isto rejeitasse.
+    // fetch falhou seria pior, e é o que aconteceria se isto rejeitasse.
 
     it('quando a rede falha', async () => {
       stubFetch(() => Promise.reject(new Error('offline')));
@@ -120,7 +120,7 @@ describe('fetchIceServers', () => {
       expect(await fetchIceServers()).toEqual(STUN_PUBLICO);
     });
 
-    it('quando a resposta tem outro formato — servidor antigo', async () => {
+    it('quando a resposta tem outro formato, servidor antigo', async () => {
       stubFetch(() => Promise.resolve(jsonResponse({ servers: 'nenhum' })));
 
       expect(await fetchIceServers()).toEqual(STUN_PUBLICO);

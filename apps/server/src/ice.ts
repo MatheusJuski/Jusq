@@ -10,7 +10,7 @@ import type { IceConfigResponse, IceServerConfig } from '@jusqs/types';
  *
  * STUN é público e poderia perfeitamente viver no cliente. TURN não: ele exige
  * usuário e senha, e um servidor TURN é banda paga. Credencial embutida no
- * bundle do Next (`NEXT_PUBLIC_*`) é credencial publicada — qualquer pessoa
+ * bundle do Next (`NEXT_PUBLIC_*`) é credencial publicada, qualquer pessoa
  * abre o DevTools e passa a usar o relay por conta da sua fatura.
  *
  * Por isso o cliente pergunta, e o servidor responde.
@@ -24,7 +24,7 @@ import type { IceConfigResponse, IceServerConfig } from '@jusqs/types';
  * vale até expirar, e só.
  *
  * **Credencial fixa** (`TURN_USERNAME` / `TURN_PASSWORD`) existe para provedor
- * que não oferece segredo compartilhado. Funciona e não expira — o que é
+ * que não oferece segredo compartilhado. Funciona e não expira, o que é
  * exatamente o problema.
  *
  * Nenhum provedor está codificado aqui. Trocar de Cloudflare para um coturn

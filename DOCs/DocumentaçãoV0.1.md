@@ -154,8 +154,8 @@ Se for tecnicamente interessante ou simplesmente divertida de construir, ela pod
 
 ### 5. Funcionar antes de estruturar
 
-Cada fase deve começar por um **esqueleto funcional** — a menor coisa que roda de
-ponta a ponta — e só depois receber a base concreta.
+Cada fase deve começar por um **esqueleto funcional**, a menor coisa que roda de
+ponta a ponta, e só depois receber a base concreta.
 
 ```text
 FUNCIONA (feio, em memória, sem teste)
@@ -179,10 +179,10 @@ A arquitetura inicial será um **monólito modular**, com possibilidade de evolu
 
 Não serão utilizados microservices inicialmente.
 
-## V0 — Esqueleto funcional
+## V0, Esqueleto funcional
 
 A primeira versão não possui banco, cache nem storage.
-O estado vive em memória e desaparece no restart — e isso é aceitável.
+O estado vive em memória e desaparece no restart, e isso é aceitável.
 
 ```text
    Browser A                    Browser B
@@ -199,7 +199,7 @@ O estado vive em memória e desaparece no restart — e isso é aceitável.
    Browser A ◄──── WebRTC (mídia) ────► Browser B
 ```
 
-## V1+ — Base concreta
+## V1+, Base concreta
 
 Persistência e infraestrutura entram **depois** que o V0 funciona em produção.
 
@@ -236,7 +236,7 @@ Persistência e infraestrutura entram **depois** que o V0 funciona em produção
 
 O projeto será organizado como um monorepo (pnpm workspaces).
 
-## V0 — Estrutura inicial
+## V0, Estrutura inicial
 
 Apenas o necessário para o Screen Lab funcionar:
 
@@ -246,7 +246,7 @@ jusqs/
 ├── apps/
 │   │
 │   ├── web/
-│   │   └── Next.js — página do Screen Lab
+│   │   └── Next.js, página do Screen Lab
 │   │
 │   └── server/
 │       └── Fastify + WebSocket signaling
@@ -479,8 +479,8 @@ Casos de uso:
 
 # 🗄️ Banco de dados
 
-> **Quando entra:** ainda não. A condição continua valendo — "só entra quando
-> existir algo que precise sobreviver a um restart" — e na Phase 1 descobriu-se
+> **Quando entra:** ainda não. A condição continua valendo, "só entra quando
+> existir algo que precise sobreviver a um restart", e na Phase 1 descobriu-se
 > que a sala não é esse algo. Ver
 > [`adr/003-postgres-adiado.md`](./adr/003-postgres-adiado.md).
 > O primeiro candidato real é o Draw Lab, na Phase 4.
@@ -557,7 +557,7 @@ Possíveis arquivos:
 
 # 🧪 Experimentos
 
-## 01 — Screen Lab
+## 01, Screen Lab
 
 Experimento focado em transmissão de tela realtime.
 
@@ -619,7 +619,7 @@ Experimentar:
 
 ---
 
-# 🎨 02 — Draw Lab
+# 🎨 02, Draw Lab
 
 Ferramenta de desenho colaborativo realtime.
 
@@ -685,7 +685,7 @@ PLAY REPLAY
 
 ---
 
-# 🎲 03 — RPG Lab
+# 🎲 03, RPG Lab
 
 Experimentos relacionados a RPG.
 
@@ -755,7 +755,7 @@ A mesma seed deve permitir reproduzir o mundo.
 
 ---
 
-# 🧬 04 — Simulation Lab
+# 🧬 04, Simulation Lab
 
 Laboratório para simulações.
 
@@ -822,7 +822,7 @@ Extinction Rate
 
 ---
 
-# 🐙 05 — GitHub RPG
+# 🐙 05, GitHub RPG
 
 Transformar atividade do GitHub em uma experiência de RPG.
 
@@ -1007,8 +1007,8 @@ Tipos de testes:
 
 > **Quando entra:** como formato de deploy do servidor, já entrou (o
 > `Dockerfile` do `apps/server`, verificado no CI). Como **ambiente local**,
-> ainda não: a própria condição escrita aqui — "só quando houver banco para
-> orquestrar" — não foi satisfeita na Phase 1. Ver
+> ainda não: a própria condição escrita aqui, "só quando houver banco para
+> orquestrar", não foi satisfeita na Phase 1. Ver
 > [`adr/003-postgres-adiado.md`](./adr/003-postgres-adiado.md).
 
 ## Docker
@@ -1095,15 +1095,15 @@ Phase 3+  evolução dos experimentos
 
 ---
 
-## Phase 0 — Walking Skeleton `v0.1`
+## Phase 0, Walking Skeleton `v0.1`
 
 O menor caminho até algo que funciona. Sem banco, sem Docker, sem CI.
 
 - [x] Monorepo (pnpm workspaces)
 - [x] TypeScript
-- [x] `apps/web` — Next.js
-- [x] `apps/server` — Fastify
-- [x] `packages/types` — mensagens de signaling
+- [x] `apps/web`, Next.js
+- [x] `apps/server`, Fastify
+- [x] `packages/types`, mensagens de signaling
 - [x] WebSocket connection
 - [x] Salas em memória (`Map()`)
 - [x] WebRTC signaling
@@ -1125,11 +1125,11 @@ Feio é aceitável. Estado que some no restart é aceitável.
 
 > Esta fase é onde a dor real do WebRTC aparece: em `localhost` e na LAN tudo
 > funciona. É ao testar de outra rede que se descobre por que TURN existe.
-> Deixe essa descoberta acontecer — ela justifica a Phase 1.
+> Deixe essa descoberta acontecer, ela justifica a Phase 1.
 
 ---
 
-## Phase 1 — Base concreta
+## Phase 1, Base concreta
 
 Só começa depois que a Phase 0 estiver no ar.
 
@@ -1141,7 +1141,7 @@ Agora os requisitos são conhecidos, não adivinhados.
 - [x] Logger estruturado
 - [x] Validação de env / config
 - [x] GitHub Actions (lint + typecheck + test)
-- [x] TURN — `GET /ice` no servidor, provedor por variável de ambiente
+- [x] TURN, `GET /ice` no servidor, provedor por variável de ambiente
 
 Três itens desta lista foram **adiados**, e o motivo importa mais que a lista:
 
@@ -1150,7 +1150,7 @@ Três itens desta lista foram **adiados**, e o motivo importa mais que a lista:
 - [ ] ~~Docker Compose (ambiente local)~~
 
 A pergunta que justificava os dois primeiros só foi respondida ao começar a
-fase: **a sala não precisa sobreviver — ela dura até a última pessoa sair.**
+fase: **a sala não precisa sobreviver, ela dura até a última pessoa sair.**
 Isso é exatamente o que o `Map()` em memória já faz. Sem dado para guardar, o
 banco não tem motivo; e sem banco, o Compose local orquestraria dois processos
 que o `pnpm dev` já sobe num comando.
@@ -1165,7 +1165,7 @@ não pode morrer no restart.
 
 ---
 
-## Phase 2 — Jusq's Core
+## Phase 2, Jusq's Core
 
 A plataforma que hospeda os demais experimentos.
 
@@ -1175,24 +1175,24 @@ A plataforma que hospeda os demais experimentos.
 - [ ] Navegação
 - [ ] Status do sistema
 
-Dois itens saíram, pela mesma pergunta que derrubou o Postgres na Phase 1 —
+Dois itens saíram, pela mesma pergunta que derrubou o Postgres na Phase 1,
 **o que isso resolve?**
 
 - [ ] ~~Perfil~~
 - [ ] ~~Sistema de logs~~
 
 **Perfil** não tem o que guardar. Não há autenticação, não há dado de usuário,
-e as salas são anônimas por design. O nome exibido — escolhido na sala e
-lembrado no navegador — já cobre a única necessidade real: saber quem é quem.
+e as salas são anônimas por design. O nome exibido, escolhido na sala e
+lembrado no navegador, já cobre a única necessidade real: saber quem é quem.
 
 **Sistema de logs** já existe, no lugar certo. O servidor tem `pino`
 estruturado e o `GET /health` expõe o estado agregado; o cliente manda erro
 para o console. Um painel de logs na tela já foi tentado e **removido** por
-ser ruído — repetir seria desfazer uma decisão tomada com o produto na mão.
+ser ruído, repetir seria desfazer uma decisão tomada com o produto na mão.
 
 ---
 
-## Phase 3 — Screen Lab completo
+## Phase 3, Screen Lab completo
 
 Retomada do Screen Lab a partir do V2.
 
@@ -1213,7 +1213,7 @@ Retomada do Screen Lab a partir do V2.
 
 ---
 
-## Phase 4 — Draw Lab
+## Phase 4, Draw Lab
 
 - [ ] Canvas
 - [ ] Brush
@@ -1230,7 +1230,7 @@ Retomada do Screen Lab a partir do V2.
 
 ---
 
-## Phase 5 — GitHub RPG
+## Phase 5, GitHub RPG
 
 - [ ] GitHub OAuth
 - [ ] Importar perfil
@@ -1245,7 +1245,7 @@ Retomada do Screen Lab a partir do V2.
 
 ---
 
-## Phase 6 — RPG Lab
+## Phase 6, RPG Lab
 
 - [ ] Character Generator
 - [ ] Character Editor
@@ -1261,7 +1261,7 @@ Retomada do Screen Lab a partir do V2.
 
 ---
 
-## Phase 7 — Simulation Lab
+## Phase 7, Simulation Lab
 
 - [ ] Artificial creatures
 - [ ] Environment
@@ -1411,14 +1411,14 @@ Exemplo:
 
 ### Registrados
 
-- [`adr/001-audio-do-sistema.md`](./adr/001-audio-do-sistema.md) — por que a
+- [`adr/001-audio-do-sistema.md`](./adr/001-audio-do-sistema.md), por que a
   captura de áudio do sistema fica fora do escopo web, e quando o caminho
   desktop passa a valer
-- [`adr/002-validacao-de-entrada.md`](./adr/002-validacao-de-entrada.md) — por
+- [`adr/002-validacao-de-entrada.md`](./adr/002-validacao-de-entrada.md), por
   que zod entra pelo ambiente e o parser do protocolo continua manual
-- [`adr/003-postgres-adiado.md`](./adr/003-postgres-adiado.md) — por que a
+- [`adr/003-postgres-adiado.md`](./adr/003-postgres-adiado.md), por que a
   Phase 1 termina sem banco, e o que reabre a decisão
-- [`adr/004-credenciais-de-turn.md`](./adr/004-credenciais-de-turn.md) — por que
+- [`adr/004-credenciais-de-turn.md`](./adr/004-credenciais-de-turn.md), por que
   a configuração de ICE passou a vir do servidor
 
 ### Formato
@@ -1469,7 +1469,7 @@ Um experimento pode evoluir independentemente.
 
 O primeiro milestone do Jusq's será:
 
-## `v0.1 — Screen Lab`
+## `v0.1, Screen Lab`
 
 O objetivo é conseguir:
 
@@ -1507,7 +1507,7 @@ Explicitamente **fora** do primeiro milestone:
 - autenticação;
 - design system.
 
-Nada disso está descartado — apenas não é pré-requisito para a tela aparecer do
+Nada disso está descartado, apenas não é pré-requisito para a tela aparecer do
 outro lado. Tudo entra na Phase 1, quando os requisitos forem reais.
 
 O objetivo inicial não é criar uma solução perfeita.
@@ -1546,5 +1546,5 @@ A definir.
 
 ```
 
-Eu faria uma pequena alteração em relação à documentação anterior: **começaria o desenvolvimento pelo Screen Lab**, porque ele te força a sair da sua zona de conforto técnica imediatamente — WebRTC, realtime, métricas, conexão entre clientes e problemas de rede — enquanto o restante do Jusq's pode nascer aos poucos em volta dele.
+Eu faria uma pequena alteração em relação à documentação anterior: **começaria o desenvolvimento pelo Screen Lab**, porque ele te força a sair da sua zona de conforto técnica imediatamente, WebRTC, realtime, métricas, conexão entre clientes e problemas de rede, enquanto o restante do Jusq's pode nascer aos poucos em volta dele.
 ```

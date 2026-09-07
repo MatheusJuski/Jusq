@@ -1,4 +1,4 @@
-# ADR-004 — Credencial de TURN sai do bundle
+# ADR-004, Credencial de TURN sai do bundle
 
 **Status:** Aceito
 **Data:** setembro/2026
@@ -14,7 +14,7 @@ O V0 lia a configuração de ICE de uma variável de build:
 NEXT_PUBLIC_ICE_SERVERS=   # JSON com os servidores extras
 ```
 
-Para STUN isso é inofensivo — STUN é público e não autentica. Para TURN, não:
+Para STUN isso é inofensivo, STUN é público e não autentica. Para TURN, não:
 TURN exige usuário e senha, e um servidor TURN **retransmite mídia**, ou seja,
 consome banda que alguém paga.
 
@@ -23,7 +23,7 @@ consome banda que alguém paga.
 qualquer visitante, legível com o DevTools aberto, sem expirar nunca.
 
 Havia ainda um segundo problema, menor e mais chato: escolher o provedor virava
-uma decisão de código. A Phase 1 chegou com o provedor ainda em aberto —
+uma decisão de código. A Phase 1 chegou com o provedor ainda em aberto,
 Cloudflare Realtime ou um coturn na VM Oracle do Setup B.
 
 ## Decisão
@@ -33,10 +33,10 @@ O cliente pergunta ao entrar na sala, em paralelo com o handshake do WebSocket.
 
 Dois modos de credencial, escolhidos por variável de ambiente:
 
-| Modo                                  | Variáveis                         | Comportamento                                                                                                          |
-| ------------------------------------- | --------------------------------- | ---------------------------------------------------------------------------------------------------------------------- |
-| **Segredo compartilhado** (preferido) | `TURN_SECRET`, `TURN_TTL_SECONDS` | usuário é `<expiração>:jusqs`, senha é `base64(HMAC-SHA1(usuário, segredo))` — o TURN REST API que o coturn implementa |
-| **Credencial fixa**                   | `TURN_USERNAME`, `TURN_PASSWORD`  | repassada como veio; não expira                                                                                        |
+| Modo                                  | Variáveis                         | Comportamento                                                                                                         |
+| ------------------------------------- | --------------------------------- | --------------------------------------------------------------------------------------------------------------------- |
+| **Segredo compartilhado** (preferido) | `TURN_SECRET`, `TURN_TTL_SECONDS` | usuário é `<expiração>:jusqs`, senha é `base64(HMAC-SHA1(usuário, segredo))`, o TURN REST API que o coturn implementa |
+| **Credencial fixa**                   | `TURN_USERNAME`, `TURN_PASSWORD`  | repassada como veio; não expira                                                                                       |
 
 Nenhum provedor está codificado. Trocar de Cloudflare para coturn, ou o
 contrário, é mudança de ambiente.
@@ -47,7 +47,7 @@ contrário, é mudança de ambiente.
   expira, então uma que vaze tem prazo.
 - O boot recusa configuração ambígua ou inútil: os dois modos juntos, meia
   credencial fixa, servidor sem credencial, credencial sem servidor. Cada um
-  desses falharia em silêncio — e o sintoma seria uma conexão que só quebra em
+  desses falharia em silêncio, e o sintoma seria uma conexão que só quebra em
   rede difícil, meses depois, sem ninguém conseguir reproduzir.
 - O cliente ganhou um `fetch` no caminho de entrada na sala. Ele corre em
   paralelo com a abertura do WebSocket, e **nunca rejeita**: qualquer falha cai
@@ -62,11 +62,11 @@ contrário, é mudança de ambiente.
 
 O Cloudflare Realtime não usa segredo compartilhado: as credenciais saem de uma
 chamada à API deles, autenticada por token. É uma terceira estratégia em
-`apps/server/src/ice.ts` — a escrever no dia em que o provedor for escolhido, e
+`apps/server/src/ice.ts`, a escrever no dia em que o provedor for escolhido, e
 não antes. Enquanto isso, o modo de credencial fixa funciona com ele.
 
 ## Alternativa considerada
 
 **Manter a credencial no cliente e proteger o TURN por origem.** Rejeitada:
-servidor TURN não valida `Origin` — quem tem usuário e senha usa o relay de
+servidor TURN não valida `Origin`, quem tem usuário e senha usa o relay de
 onde quiser. A proteção que existe é a credencial expirar.

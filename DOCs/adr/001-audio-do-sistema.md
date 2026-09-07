@@ -1,4 +1,4 @@
-# ADR-001 — Áudio do sistema fica fora do escopo web
+# ADR-001, Áudio do sistema fica fora do escopo web
 
 **Status:** Aceito
 **Data:** setembro/2026
@@ -24,22 +24,22 @@ por medição:
 - 9 formatos diferentes de pedido, incluindo `systemAudio: 'include'`,
   `windowAudio: 'system'`, `monitorTypeSurfaces`, `selfBrowserSurface`,
   `surfaceSwitching`, restrições de áudio, `suppressLocalAudioPlayback` e
-  `displaySurface` — **todas as opções que a especificação oferece**
+  `displaySurface`, **todas as opções que a especificação oferece**
 - HTTP (`localhost`) e HTTPS (produção)
 - Brave e Edge, com e sem o escudo do Brave
 - Microfone aberto antes e durante a captura
 - Saída de áudio mantida ativa durante a captura
-- **Página HTML pura** — sem React, sem Next, sem WebRTC, sem uma linha do
+- **Página HTML pura**, sem React, sem Next, sem WebRTC, sem uma linha do
   projeto: `NotReadableError` idêntico. Descarta o stack da aplicação como
   causa possível
 
 O `getDisplayMedia` rejeita **antes** de entregar qualquer trilha. O Google
-Meet captura na mesma máquina, no mesmo navegador, com a mesma API — e essa
+Meet captura na mesma máquina, no mesmo navegador, com a mesma API, e essa
 diferença permanece sem explicação.
 
 Com **aba**, a mesma variante que falha em tela inteira captura normalmente:
 `audioLabel: "Tab audio"`, `audioMuted: false`, `audioState: "live"`. A trilha
-não vem muda nem encerrada — vem viva. A diferença está unicamente na
+não vem muda nem encerrada, vem viva. A diferença está unicamente na
 superfície escolhida.
 
 A perna WebRTC foi verificada em separado: compartilhando uma aba, o áudio
@@ -97,7 +97,7 @@ som" for requisito real, não desejo pontual.
 **Positivas**
 
 - A interface passou a ser honesta: `áudio: da aba` em vez de `da tela`
-- O microfone virou opção de primeira classe — funciona com qualquer fonte,
+- O microfone virou opção de primeira classe, funciona com qualquer fonte,
   inclusive janela, com um clique de permissão
 - A falha degrada para vídeo em vez de cancelar a transmissão
 - O painel de diagnóstico mede áudio separado do vídeo, tornando a cadeia
@@ -107,7 +107,7 @@ som" for requisito real, não desejo pontual.
 
 - Transmitir o som de um jogo exige narrar por microfone, ou configurar um
   dispositivo de loopback
-- Quando o áudio de tela falha, um segundo seletor é aberto para o fallback —
+- Quando o áudio de tela falha, um segundo seletor é aberto para o fallback,
   incômodo, mas é o que garante que a transmissão aconteça
 
 ---

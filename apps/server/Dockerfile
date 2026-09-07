@@ -2,7 +2,7 @@
 #
 # O build empacota tudo num único arquivo (incluindo @jusqs/types, que é
 # publicado como TypeScript cru). Por isso a imagem final não carrega
-# node_modules nem o monorepo — só o Node e um bundle.
+# node_modules nem o monorepo, só o Node e um bundle.
 #
 # Contexto de build: a RAIZ do monorepo, não esta pasta.
 #   docker build -f apps/server/Dockerfile -t jusqs-server .

@@ -11,7 +11,7 @@ import { buildServer, type JusqsServer } from './server.js';
  *
  * Sobe o servidor de verdade em porta efêmera e conversa com ele por WebSocket
  * de verdade. Os testes de `rooms.ts` e `protocol.ts` cobrem as peças; o que só
- * aparece aqui é a costura entre elas — quem recebe o quê, em que ordem, e o
+ * aparece aqui é a costura entre elas, quem recebe o quê, em que ordem, e o
  * que acontece com a conexão quando a mensagem é inválida.
  */
 
@@ -70,7 +70,7 @@ function createClient(url: string) {
       socket.send(raw);
     },
 
-    /** Próxima mensagem. Rejeita no timeout — silêncio também é resultado. */
+    /** Próxima mensagem. Rejeita no timeout, silêncio também é resultado. */
     next(timeoutMs = 1000): Promise<ServerMessage> {
       const queued = queue.shift();
       if (queued) return Promise.resolve(queued);
@@ -139,7 +139,7 @@ describe('servidor de signaling', () => {
       expect(response.json()).toMatchObject({ status: 'ok', rooms: 0, peers: 0 });
     });
 
-    it('reflete peers conectados — é assim que se vê a sala de fora', async () => {
+    it('reflete peers conectados, é assim que se vê a sala de fora', async () => {
       const client = await connect();
       await client.join('sala-1');
 
@@ -158,7 +158,7 @@ describe('servidor de signaling', () => {
       });
     });
 
-    it('proíbe cache — a credencial de TURN expira', async () => {
+    it('proíbe cache, a credencial de TURN expira', async () => {
       const response = await app.inject({ method: 'GET', url: '/ice' });
 
       expect(response.headers['cache-control']).toBe('no-store');
@@ -209,7 +209,7 @@ describe('servidor de signaling', () => {
       const joined = expectMessage(await segundo.next(), 'joined');
       expect(joined.peers).toEqual([{ id: primeiroId, name: 'teste' }]);
 
-      // Quem já estava é quem inicia a oferta — por isso ele precisa do aviso.
+      // Quem já estava é quem inicia a oferta, por isso ele precisa do aviso.
       const aviso = expectMessage(await primeiro.next(), 'peer-joined');
       expect(aviso.peer.id).toBe(joined.peerId);
     });

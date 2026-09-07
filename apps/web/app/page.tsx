@@ -21,7 +21,7 @@ export default function HomePage() {
           <span className="text-lilac-soft">experimentos digitais.</span>
         </h1>
         <p className="mt-5 max-w-lg text-[15px] leading-relaxed text-denim">
-          Cada experimento aqui existe para explorar um problema técnico diferente —
+          Cada experimento aqui existe para explorar um problema técnico diferente,
           sistemas realtime, simulação, geração procedural. Nenhum deles precisa ter
           valor comercial.
         </p>
@@ -97,7 +97,7 @@ export default function HomePage() {
           O Jusq&apos;s não tem uma finalidade única e não pretende ser finalizado. A
           ideia é transformar{' '}
           <span className="text-sky">&ldquo;seria legal fazer isso&rdquo;</span> em{' '}
-          <span className="text-sky">&ldquo;vou descobrir como&rdquo;</span> — e
+          <span className="text-sky">&ldquo;vou descobrir como&rdquo;</span>, e
           documentar o que quebrou no caminho.
         </p>
       </section>

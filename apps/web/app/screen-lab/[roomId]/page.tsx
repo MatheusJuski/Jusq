@@ -108,8 +108,8 @@ export default function RoomPage() {
   /**
    * Erros vão para o console, não para a tela.
    *
-   * A maior parte deles é técnica demais para o usuário — nomes de exceção do
-   * WebRTC, estados de ICE — e poluía a interface. O estado que interessa a
+   * A maior parte deles é técnica demais para o usuário, nomes de exceção do
+   * WebRTC, estados de ICE, e poluía a interface. O estado que interessa a
    * quem usa continua visível nos painéis: "sem áudio", "aguardando alguém",
    * "parado".
    */
@@ -128,7 +128,7 @@ export default function RoomPage() {
       setAudioDevices(await listAudioInputs());
     } catch {
       reportError(
-        'não foi possível listar os dispositivos de áudio — a permissão de ' +
+        'não foi possível listar os dispositivos de áudio, a permissão de ' +
           'microfone foi negada.',
       );
     }
@@ -167,7 +167,7 @@ export default function RoomPage() {
     //   await jusqs.getDiagnostics()
     //
     // A telemetria saiu da tela, mas continua disponível para quem estiver
-    // depurando — sem poluir a interface de quem só quer transmitir.
+    // depurando, sem poluir a interface de quem só quer transmitir.
     if (process.env.NODE_ENV === 'development') {
       (window as unknown as { jusqs?: RoomClient }).jusqs = client;
     }
@@ -275,7 +275,7 @@ export default function RoomPage() {
               'da aba: o áudio vem junto da captura. Funciona ao ' +
               'compartilhar uma aba do navegador; em tela ou janela ' +
               'depende do sistema e falha com frequência. ' +
-              'microfone: funciona com qualquer fonte, inclusive janela — ' +
+              'microfone: funciona com qualquer fonte, inclusive janela, ' +
               'basta conceder a permissão.'
             }
             onChange={(event) => {

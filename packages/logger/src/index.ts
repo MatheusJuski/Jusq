@@ -39,7 +39,7 @@ const REDACT = [
  *
  * `pino-pretty` é devDependency e não existe no bundle de produção. Pedir o
  * transport sem que o módulo seja resolvível derruba o processo no boot
- * (`unable to determine transport target`) — antes de qualquer log que
+ * (`unable to determine transport target`), antes de qualquer log que
  * explicasse o motivo.
  *
  * `NODE_ENV` sozinho não serve como critério: o Render não define a variável
@@ -52,7 +52,7 @@ function resolveTransport(pretty: boolean | undefined): LoggerOptions['transport
     // Produção: JSON puro, que é o que a plataforma agrega.
     if (process.env['NODE_ENV'] === 'production') return undefined;
     // Teste: o transport do pino roda numa worker thread, e uma por suíte
-    // atrasa o encerramento sem entregar nada — ninguém lê log de teste.
+    // atrasa o encerramento sem entregar nada, ninguém lê log de teste.
     if (process.env['NODE_ENV'] === 'test') return undefined;
   }
 

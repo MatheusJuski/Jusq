@@ -5,7 +5,7 @@ import { DEFAULT_PEER_NAME, MAX_PEER_NAME_LENGTH } from '@jusqs/types';
  *
  * Fica em `localStorage` e não em cookie ou banco: é preferência de uma pessoa
  * num navegador, ninguém precisa dela do outro lado, e o servidor já recebe o
- * nome em cada `join`. Guardar isso remotamente exigiria identidade — que o
+ * nome em cada `join`. Guardar isso remotamente exigiria identidade, que o
  * projeto deliberadamente não tem (as salas são anônimas por design).
  *
  * O saneamento acontece no servidor, que é onde importa; aqui o corte serve só
@@ -17,7 +17,7 @@ const STORAGE_KEY = 'jusqs:peer-name';
 /**
  * Lê o nome salvo.
  *
- * `localStorage` lança em contexto restrito — janela anônima com cookies
+ * `localStorage` lança em contexto restrito, janela anônima com cookies
  * bloqueados, iframe de terceiro, navegador com dados de site desativados.
  * Falhar aqui não pode impedir alguém de entrar numa sala.
  */
@@ -50,8 +50,8 @@ export function storeName(name: string): void {
  *
  * Expor isso como store permite que a página use `useSyncExternalStore`, que
  * dá um snapshot para o servidor (string vazia, porque lá não existe
- * armazenamento) e outro para o cliente. A alternativa — `useState` mais um
- * `useEffect` que lê e chama `setState` — funciona, mas provoca um render em
+ * armazenamento) e outro para o cliente. A alternativa, `useState` mais um
+ * `useEffect` que lê e chama `setState`, funciona, mas provoca um render em
  * cascata a cada montagem e é o padrão que o lint do projeto sinaliza.
  */
 const listeners = new Set<() => void>();

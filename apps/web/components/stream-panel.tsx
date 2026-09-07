@@ -24,7 +24,7 @@ const neverChanges = () => () => undefined;
  * o React oferece para exatamente isso: um snapshot para o servidor (`false`,
  * o valor conservador) e outro para o cliente.
  *
- * A alternativa — `useState(false)` mais `useEffect(setSupported)` — funciona,
+ * A alternativa, `useState(false)` mais `useEffect(setSupported)`, funciona,
  * mas custa um render extra em cascata a cada montagem e é justamente o padrão
  * que `react-hooks/set-state-in-effect` sinaliza.
  */
@@ -66,7 +66,7 @@ function useFullscreen(ref: RefObject<HTMLElement | null>) {
 /**
  * Picture-in-Picture: a janelinha flutuante que sobrevive fora do browser.
  *
- * Firefox tem PiP próprio, acionado pela UI dele, e não expõe esta API — daí a
+ * Firefox tem PiP próprio, acionado pela UI dele, e não expõe esta API, daí a
  * checagem de suporte em vez de assumir.
  */
 function usePictureInPicture(ref: RefObject<HTMLVideoElement | null>) {
@@ -214,7 +214,7 @@ export function StreamVideo({
   const ref = videoRef ?? ownRef;
 
   // Declarado ANTES do efeito do stream de propósito: efeitos rodam na ordem de
-  // declaração, e `muted` precisa valer antes do srcObject — é ele que autoriza
+  // declaração, e `muted` precisa valer antes do srcObject, é ele que autoriza
   // o autoplay. Sem isso o browser barra com NotAllowedError e a tela fica
   // preta. Também é o que aplica o clique em SOM, permitido apenas porque parte
   // de um gesto do usuário.
@@ -235,7 +235,7 @@ export function StreamVideo({
       // primeiro, este play() é abortado. É esperado, não é falha.
       if (error.name === 'AbortError') return;
 
-      onPlayError?.(`reprodução bloqueada (${error.name}) — clique no vídeo`);
+      onPlayError?.(`reprodução bloqueada (${error.name}), clique no vídeo`);
     });
 
     return () => {

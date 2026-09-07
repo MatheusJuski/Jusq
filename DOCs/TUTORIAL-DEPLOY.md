@@ -1,4 +1,4 @@
-# Tutorial — Subindo o Jusq's
+# Tutorial, Subindo o Jusq's
 
 Passo a passo para colocar o Screen Lab no ar. Custo: **R$ 0,00**.
 
@@ -32,7 +32,7 @@ Um link que você manda para qualquer pessoa e ela vê sua tela.
 
 ## Por que o deploy faz parte da Phase 0
 
-Não é polimento — é o que torna a fase verificável.
+Não é polimento, é o que torna a fase verificável.
 
 `getDisplayMedia` só funciona em **contexto seguro**. Em `localhost` o browser
 abre uma exceção, mas entre duas máquinas é preciso HTTPS. Sem deploy, o
@@ -49,7 +49,7 @@ testar.
 
 ---
 
-## Parte 1 — Código no GitHub
+## Parte 1, Código no GitHub
 
 O Render e a Vercel puxam direto do repositório.
 
@@ -72,10 +72,10 @@ git push -u origin main
 
 ---
 
-## Parte 2 — Servidor no Render
+## Parte 2, Servidor no Render
 
 O servidor precisa ser um processo vivo por causa do WebSocket. Vercel Functions
-não servem para isso — daí a separação.
+não servem para isso, daí a separação.
 
 > **Por que Render e não Koyeb:** o Koyeb foi adquirido pela Mistral em
 > fevereiro de 2026 e o plano gratuito foi removido para novos usuários. O
@@ -89,12 +89,12 @@ não servem para isso — daí a separação.
 
 ### 2.2 Configurar
 
-Esta é a parte que erra fácil. Há **duas opções** — o campo `Language` decide
+Esta é a parte que erra fácil. Há **duas opções**, o campo `Language` decide
 qual formulário aparece.
 
 Ambas foram testadas e produzem o mesmo binário. Escolha uma.
 
-#### Opção A — Docker _(recomendada)_
+#### Opção A, Docker _(recomendada)_
 
 | Campo                              | Valor                          |
 | ---------------------------------- | ------------------------------ |
@@ -115,7 +115,7 @@ Ambas foram testadas e produzem o mesmo binário. Escolha uma.
 Vantagem: é o mesmo build que roda na sua máquina, então dá para reproduzir
 qualquer falha localmente (ver o fim deste documento).
 
-#### Opção B — Node
+#### Opção B, Node
 
 Se o formulário mostrar **Build Command** e **Start Command**, o `Language`
 está como Node. Nesse caso use:
@@ -136,10 +136,10 @@ Três detalhes que importam:
 
 - **Root Directory vazio.** Apontar para `apps/server` esconde o
   `pnpm-workspace.yaml` e o `packages/types`, e o build quebra.
-- **`--filter @jusqs/server...`** — as reticências não são erro de digitação.
+- **`--filter @jusqs/server...`**, as reticências não são erro de digitação.
   Elas mandam o pnpm instalar o servidor **e suas dependências de workspace**
   (`packages/types`), pulando o Next.js e o app web.
-- O Start Command padrão sugerido pelo Render (`yarn start`) **não serve** —
+- O Start Command padrão sugerido pelo Render (`yarn start`) **não serve**,
   este projeto usa pnpm e o entrypoint está em `apps/server/dist/`.
 
 ### 2.3 Porta e variáveis de ambiente
@@ -158,14 +158,14 @@ Em **Environment Variables**, adicione:
 
 Sobre `NODE_ENV`: **não precisa configurar**.
 
-- Na Opção A (Docker), o próprio Dockerfile define `NODE_ENV=production` — o
+- Na Opção A (Docker), o próprio Dockerfile define `NODE_ENV=production`, o
   Render _não_ define isso para serviços Docker.
 - Na Opção B (Node), o Render define automaticamente.
 - E o servidor sobe corretamente mesmo sem a variável: ele decide o formato de
   log por disponibilidade do `pino-pretty`, não por `NODE_ENV`.
 
 > Esse último ponto existe porque a versão anterior **quebrava no boot** sem
-> `NODE_ENV=production` — o `pino-pretty` é devDependency e não está no bundle,
+> `NODE_ENV=production`, o `pino-pretty` é devDependency e não está no bundle,
 > e o Fastify morria com `unable to determine transport target`. Um deploy não
 > deve depender de alguém lembrar de uma variável para o processo subir.
 
@@ -179,7 +179,7 @@ Ao final você recebe uma URL:
 https://jusqs-server.onrender.com
 ```
 
-**Anote — você vai precisar dela na Parte 3.**
+**Anote, você vai precisar dela na Parte 3.**
 
 ### 2.5 Verificar
 
@@ -198,7 +198,7 @@ normal no plano free.
 
 ---
 
-## Parte 3 — Web na Vercel
+## Parte 3, Web na Vercel
 
 1. Entre em <https://vercel.com> e crie a conta com GitHub
 2. **Add New** → **Project** → importe `jusqs`
@@ -212,7 +212,7 @@ normal no plano free.
 | Build / Install Command | _(deixe o padrão)_    |
 
 > **Root Directory é o campo crítico.** Sem ele a Vercel tenta buildar a raiz do
-> monorepo e falha. Ao definir `apps/web`, ela ainda instala a partir da raiz —
+> monorepo e falha. Ao definir `apps/web`, ela ainda instala a partir da raiz,
 > é isso que faz `@jusqs/types` resolver.
 
 ### 3.2 Variável de ambiente
@@ -229,9 +229,9 @@ Antes de clicar em Deploy, abra **Environment Variables**:
 Quatro detalhes que quebram silenciosamente:
 
 - **Type = Config.** A Vercel recusa `NEXT_PUBLIC_*` como _Secret_, e com razão:
-  esse prefixo embute o valor no JavaScript entregue ao browser — ele é público
+  esse prefixo embute o valor no JavaScript entregue ao browser, ele é público
   por definição. Marcar como Secret prometeria um sigilo que não existe.
-- **`wss://`**, não `ws://` — página HTTPS não abre WebSocket inseguro (o
+- **`wss://`**, não `ws://`, página HTTPS não abre WebSocket inseguro (o
   browser bloqueia como conteúdo misto). É só um `s`, e é o erro mais comum.
 - O sufixo **`/ws`** é obrigatório, é a rota do servidor.
 - `NEXT_PUBLIC_*` é embutida **no build**; mudar depois exige **redeploy**.
@@ -249,7 +249,7 @@ https://jusqs-<algo>.vercel.app
 
 ---
 
-## Parte 4 — Fechar o círculo
+## Parte 4, Fechar o círculo
 
 Cada lado precisa da URL do outro, então há uma ordem obrigatória: Render
 primeiro (Parte 2), Vercel depois (Parte 3), e agora voltamos ao Render.
@@ -263,13 +263,13 @@ No Render, em **Environment** → **Add Environment Variable**, adicione:
 Redeploy o serviço.
 
 > **Isso não afeta o WebSocket.** O browser não aplica CORS ao handshake de
-> WebSocket — o Screen Lab funciona mesmo sem essa variável. Ela existe para as
+> WebSocket, o Screen Lab funciona mesmo sem essa variável. Ela existe para as
 > rotas HTTP (hoje só `/health`) e para quando a REST API chegar. Configurar
 > agora evita um bug confuso na Phase 1.
 
 ---
 
-## Parte 5 — Testar
+## Parte 5, Testar
 
 1. Abra `https://jusqs-<algo>.vercel.app`
 2. **CRIAR SALA**
@@ -288,7 +288,7 @@ Olhe a tabela **WEBRTC** na página. Ela responde qual é o problema:
 | Sintoma na tabela                    | Significado              | O que fazer                   |
 | ------------------------------------ | ------------------------ | ----------------------------- |
 | `RECEBIDO` cresce, tela preta        | mídia chega, não desenha | clique no vídeo (autoplay)    |
-| `CONN` = `failed`, `PAR` = `—`       | ICE não achou caminho    | **é NAT — precisa de TURN**   |
+| `CONN` = `failed`, `PAR` = `vazio`   | ICE não achou caminho    | **é NAT, precisa de TURN**    |
 | `CONN` = `connected`, `RECEBIDO` = 0 | negociou, ninguém envia  | os dois transmitindo? (glare) |
 | `PEERS 0`                            | signaling não conectou   | veja "Problemas comuns"       |
 
@@ -297,13 +297,13 @@ Olhe a tabela **WEBRTC** na página. Ela responde qual é o problema:
 ## O NAT vai aparecer
 
 Entre redes diferentes, uma parte das conexões falha: NAT simétrico, rede
-corporativa, CGNAT de operadora. O sintoma é `CONN: failed` com `PAR: —`.
+corporativa, CGNAT de operadora. O sintoma é `CONN: failed` com `PAR` vazio.
 
 **Isso não é bug.** É o problema que justifica o TURN, e a Phase 0 foi
 desenhada para você encontrá-lo antes de adicionar a solução (Regra 1:
 nenhuma tecnologia sem motivo).
 
-A solução — Cloudflare Realtime, 1 TB/mês grátis — é a Phase 1. Quando chegar
+A solução, Cloudflare Realtime, 1 TB/mês grátis, é a Phase 1. Quando chegar
 lá, basta preencher `NEXT_PUBLIC_ICE_SERVERS` na Vercel; o código já lê essa
 variável em [`apps/web/lib/ice.ts`](../apps/web/lib/ice.ts).
 
@@ -316,7 +316,7 @@ variável em [`apps/web/lib/ice.ts`](../apps/web/lib/ice.ts).
 O `allowBuilds` do `pnpm-workspace.yaml` não chegou no container. Confirme que o
 arquivo está commitado e que a chave é **`allowBuilds`** (mapa de pacote →
 booleano). O antigo `onlyBuiltDependencies` foi removido no pnpm 11 e é
-ignorado **em silêncio** — passa local e quebra em container limpo.
+ignorado **em silêncio**, passa local e quebra em container limpo.
 
 ### Build falha com `Cannot find module` ou `packages/types`
 
@@ -335,7 +335,7 @@ do valor. Sem `wss://` na frente, o browser trata a string como caminho
 relativo e tenta abrir o WebSocket contra a própria página.
 
 Corrija o Value para `wss://<seu-server>.onrender.com/ws` e **refaça o
-deploy** — `NEXT_PUBLIC_*` é embutida no build.
+deploy**, `NEXT_PUBLIC_*` é embutida no build.
 
 > A partir da versão atual o app rejeita esse valor e mostra a causa no painel
 > de diagnóstico, em vez de montar uma URL sem sentido.
@@ -345,14 +345,14 @@ deploy** — `NEXT_PUBLIC_*` é embutida no build.
 Root Directory não está como `apps/web`, ou a opção de incluir arquivos fora do
 root foi desativada.
 
-### `PEERS 0` — signaling não conecta
+### `PEERS 0`, signaling não conecta
 
 Abra o console do browser (F12). Erro de WebSocket costuma ser:
 
 - `ws://` no lugar de `wss://`
 - falta do `/ws` no fim da URL
 - a variável foi criada **depois** do build (`NEXT_PUBLIC_*` é embutida no
-  build — refaça o deploy)
+  build, refaça o deploy)
 
 ### Primeira conexão demora ~1 minuto
 
@@ -383,7 +383,7 @@ git push
 - Vercel: redeploy automático
 - Render: redeploy automático
 
-Mudou uma variável `NEXT_PUBLIC_*`? **Precisa de redeploy** — ela é embutida no
+Mudou uma variável `NEXT_PUBLIC_*`? **Precisa de redeploy**, ela é embutida no
 build, não lida em runtime.
 
 ---
@@ -400,5 +400,5 @@ docker run --rm -p 3001:8000 -e PORT=8000 jusqs-server
 curl http://localhost:3001/health
 ```
 
-Se funciona aqui e falha no Render, o problema é configuração da plataforma —
+Se funciona aqui e falha no Render, o problema é configuração da plataforma,
 não o código.

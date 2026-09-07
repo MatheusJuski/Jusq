@@ -4,7 +4,7 @@ import { parseClientMessage } from './protocol.js';
 
 /**
  * O parser é a fronteira do servidor com a rede: tudo que chega passa por
- * aqui antes de virar `ClientMessage`. Os testes cobrem o lado hostil —
+ * aqui antes de virar `ClientMessage`. Os testes cobrem o lado hostil,
  * entrada malformada precisa virar `null`, nunca exceção e nunca objeto
  * parcialmente válido.
  */
@@ -31,7 +31,7 @@ describe('parseClientMessage', () => {
       ).toEqual({ type: 'join', roomId: 'sala-1', name: 'Ana' });
     });
 
-    it('entra sem nome — nome ruim nunca impede o acesso à sala', () => {
+    it('entra sem nome, nome ruim nunca impede o acesso à sala', () => {
       expect(parseClientMessage('{"type":"join","roomId":"sala-1"}')).toEqual({
         type: 'join',
         roomId: 'sala-1',
@@ -82,7 +82,7 @@ describe('parseClientMessage', () => {
       expect(nameOf(valor)).toBe('anônimo');
     });
 
-    it('remove quebra de linha — o nome vive numa linha só', () => {
+    it('remove quebra de linha, o nome vive numa linha só', () => {
       // `fromCharCode` em vez de escape: num teste sobre controles, o código
       // do caractere é a informação, e evita depender de escape correto.
       expect(nameOf('a' + String.fromCharCode(10) + 'b')).toBe('ab');
@@ -203,7 +203,7 @@ describe('parseClientMessage', () => {
         });
       });
 
-      it('aceita candidato vazio — é o sinal de fim de coleta do ICE', () => {
+      it('aceita candidato vazio, é o sinal de fim de coleta do ICE', () => {
         const raw = JSON.stringify({
           type: 'signal',
           to: 'b',

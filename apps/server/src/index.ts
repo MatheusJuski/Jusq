@@ -12,7 +12,7 @@ import { buildServer } from './server.js';
 /**
  * Ambiente primeiro, tudo o mais depois.
  *
- * Se a configuração estiver errada, o processo morre aqui — com o nome da
+ * Se a configuração estiver errada, o processo morre aqui, com o nome da
  * variável na mensagem e sem porta aberta. Um servidor que sobe com
  * `CORS_ORIGIN` torto aceita o WebSocket e falha no handshake, e o sintoma que
  * chega ao usuário ("a sala não abre") não aponta para a causa.
@@ -22,7 +22,7 @@ function loadEnvOrExit(): ServerEnv {
     return loadServerEnv();
   } catch (error) {
     if (!(error instanceof ConfigError)) throw error;
-    // O logger ainda não existe — ele depende justamente do que falhou.
+    // O logger ainda não existe, ele depende justamente do que falhou.
     console.error(error.message);
     process.exit(1);
   }

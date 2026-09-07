@@ -8,7 +8,7 @@ import { StatusDot } from '@/components/ui';
 /**
  * Estado do servidor de signaling.
  *
- * Consome o `GET /health` que já existia — o item "Status do sistema" do
+ * Consome o `GET /health` que já existia, o item "Status do sistema" do
  * roadmap não pedia infraestrutura nova, só mostrar o que o servidor já
  * responde.
  *
@@ -24,7 +24,7 @@ interface Health {
   peers: number;
 }
 
-/** Deriva a URL HTTP a partir da de WebSocket — é o mesmo servidor. */
+/** Deriva a URL HTTP a partir da de WebSocket, é o mesmo servidor. */
 function healthUrl(): string {
   return getSignalingUrl().replace(/^ws/, 'http').replace(/\/ws$/, '') + '/health';
 }

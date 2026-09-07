@@ -17,7 +17,7 @@ import { RoomRegistry } from './rooms.js';
  * Monta o servidor sem abrir porta nenhuma.
  *
  * Separado do boot de propósito: um módulo que escuta como efeito colateral do
- * `import` não pode ser testado — cada teste subiria um servidor de verdade na
+ * `import` não pode ser testado, cada teste subiria um servidor de verdade na
  * mesma porta. Aqui o teste monta a aplicação, exercita o protocolo e derruba.
  *
  * O tipo de retorno é inferido, e não anotado como `FastifyInstance`: passar um
@@ -114,7 +114,7 @@ export async function buildServer(env: ServerEnv) {
             peers: result.peers,
           });
 
-          // Quem já estava é notificado e — por convenção do protocolo —
+          // Quem já estava é notificado e, por convenção do protocolo,
           // é quem inicia a oferta. Evita glare sem perfect negotiation.
           rooms.broadcast(
             message.roomId,

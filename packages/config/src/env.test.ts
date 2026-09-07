@@ -3,7 +3,7 @@ import { describe, expect, it } from 'vitest';
 import { ConfigError, loadServerEnv } from './env.js';
 
 describe('loadServerEnv', () => {
-  it('sobe com ambiente vazio — clone novo do repositório roda com pnpm dev', () => {
+  it('sobe com ambiente vazio, clone novo do repositório roda com pnpm dev', () => {
     expect(loadServerEnv({})).toEqual({
       NODE_ENV: 'development',
       PORT: 3001,
@@ -82,7 +82,7 @@ describe('loadServerEnv', () => {
   });
 
   describe('DATABASE_URL', () => {
-    it('é opcional — ausente significa salas só em memória', () => {
+    it('é opcional, ausente significa salas só em memória', () => {
       expect(loadServerEnv({}).DATABASE_URL).toBeUndefined();
     });
 
@@ -98,7 +98,7 @@ describe('loadServerEnv', () => {
       ['esquema errado', 'mysql://user@host/db'],
       ['só o esquema', 'postgres://'],
     ])('recusa %s', (_caso, DATABASE_URL) => {
-      // Uma string qualquer aqui só falha quando o driver tenta conectar —
+      // Uma string qualquer aqui só falha quando o driver tenta conectar,
       // longe do boot e longe da causa.
       expect(() => loadServerEnv({ DATABASE_URL })).toThrow(/DATABASE_URL/);
     });
@@ -107,7 +107,7 @@ describe('loadServerEnv', () => {
   describe('TURN', () => {
     const URLS = 'turn:turn.exemplo.com:3478';
 
-    it('é opcional — sem nada configurado, sobra só STUN', () => {
+    it('é opcional, sem nada configurado, sobra só STUN', () => {
       const env = loadServerEnv({});
 
       expect(env.TURN_URLS).toBeUndefined();
@@ -134,11 +134,11 @@ describe('loadServerEnv', () => {
       expect(env.TURN_USERNAME).toBe('u');
     });
 
-    it('recusa servidor sem credencial — não autenticaria', () => {
+    it('recusa servidor sem credencial, não autenticaria', () => {
       expect(() => loadServerEnv({ TURN_URLS: URLS })).toThrow(/TURN_URLS/);
     });
 
-    it('recusa credencial sem servidor — não faria nada', () => {
+    it('recusa credencial sem servidor, não faria nada', () => {
       // O pior tipo de configuração errada: a que parece certa.
       expect(() => loadServerEnv({ TURN_SECRET: 'segredo' })).toThrow(/TURN_URLS/);
     });

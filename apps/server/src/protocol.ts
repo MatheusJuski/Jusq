@@ -9,7 +9,7 @@ import { DEFAULT_PEER_NAME, MAX_PEER_NAME_LENGTH } from '@jusqs/types';
  * Validação manual do protocolo.
  *
  * Sem zod no V0 de propósito (Regra 1: nenhuma tecnologia sem motivo).
- * O protocolo tem duas mensagens — uma biblioteca de schema aqui seria
+ * O protocolo tem duas mensagens, uma biblioteca de schema aqui seria
  * peso morto. Se ele crescer, a troca é local a este arquivo.
  */
 export function parseClientMessage(raw: string): ClientMessage | null {
@@ -47,7 +47,7 @@ export function parseClientMessage(raw: string): ClientMessage | null {
  * Sanea o nome exibido.
  *
  * Este é o único campo do protocolo que vai **direto para a tela de outra
- * pessoa**, então ele não é só validado — é reescrito para uma forma segura.
+ * pessoa**, então ele não é só validado, é reescrito para uma forma segura.
  * Nunca falha: nome ruim vira o padrão, e ninguém fica sem entrar na sala por
  * causa de um apelido.
  *
@@ -97,7 +97,7 @@ function parseSignalPayload(value: unknown): SignalPayload | null {
 }
 
 /**
- * Valida apenas o que o repasse exige. O servidor não interpreta ICE —
+ * Valida apenas o que o repasse exige. O servidor não interpreta ICE,
  * quem julga a validade do candidato é o browser do outro lado.
  */
 function parseIceCandidate(value: unknown): RTCIceCandidateInitLike | null {

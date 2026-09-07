@@ -108,7 +108,7 @@ describe('buildIceConfig', () => {
       });
     });
 
-    it('não anuncia validade — esta credencial não expira', () => {
+    it('não anuncia validade, esta credencial não expira', () => {
       expect(buildIceConfig(env, NOW).ttl).toBeNull();
     });
   });

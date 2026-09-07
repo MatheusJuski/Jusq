@@ -12,7 +12,7 @@ import { EXPERIMENTS, findExperiment } from '@/lib/experiments';
  * acrescentar uma entrada em `experiments.ts`, e a navegação acompanha sozinha.
  *
  * Cliente porque depende da rota atual. É o único pedaço do cabeçalho que
- * precisa disso — o resto do layout continua servido do servidor.
+ * precisa disso, o resto do layout continua servido do servidor.
  */
 export function ExperimentNav() {
   const pathname = usePathname();

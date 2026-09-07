@@ -8,12 +8,12 @@ import tseslint from 'typescript-eslint';
 /**
  * Lint do Jusq's.
  *
- * Uma config só, na raiz, com blocos por área — em vez de um `.eslintrc` por
+ * Uma config só, na raiz, com blocos por área, em vez de um `.eslintrc` por
  * pacote. O monorepo é pequeno e as regras são quase todas comuns; espalhar
  * arquivos de config só cria oportunidade de divergirem em silêncio.
  *
  * As regras são **type-aware** (`projectService`): sem os tipos, o ESLint não
- * enxerga promise não-aguardada nem `any` vindo de biblioteca — que são
+ * enxerga promise não-aguardada nem `any` vindo de biblioteca, que são
  * justamente os erros que aparecem em código realtime. O custo é lint mais
  * lento e a exigência de todo arquivo pertencer a algum tsconfig.
  */

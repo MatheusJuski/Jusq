@@ -18,7 +18,7 @@ import { findExperiment } from '@/lib/experiments';
 /**
  * Gera um id de sala curto e legível.
  *
- * Não é seguro por obscuridade — qualquer um com o link entra. Controle de
+ * Não é seguro por obscuridade, qualquer um com o link entra. Controle de
  * acesso exigiria autenticação, que o projeto não tem por escolha.
  *
  * O alfabeto omite `i`, `l`, `o` e `0`: o código é lido em voz alta e digitado
@@ -94,7 +94,7 @@ export default function ScreenLabPage() {
         </p>
         <p className="mt-4 text-[13px] leading-relaxed text-denim/70">
           O áudio acompanha a transmissão ao compartilhar uma aba do navegador. Para
-          tela inteira ou janela, use o microfone como fonte — a captura de áudio do
+          tela inteira ou janela, use o microfone como fonte, a captura de áudio do
           sistema depende da plataforma e falha com frequência.
         </p>
 
